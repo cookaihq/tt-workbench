@@ -1,0 +1,6 @@
+{
+  // 活动 Skill：安装器为所选 Agent 建立指向 skills/<名称>/ 的发现链接。
+  "skills": ["tannt-capture", "tannt-update-note", "tannt-cloud-files", "tannt-sync-agent-config", "tannt-organize-agent-rules"],
+  // 退役名称：只清理已知来源的旧链接，不安装这些 Skill。
+  "retired": ["tannt-save-note", "tannt-setup-device"]
+}

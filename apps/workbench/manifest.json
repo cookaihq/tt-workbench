@@ -1,0 +1,9 @@
+{
+  "id": "tannt-workbench",
+  "name": "tannt 工作台",
+  "version": "0.22.0",
+  "minAppVersion": "1.8.7",
+  "description": "浏览当前库的工作，管理项目、任务、收件箱和开发 Issue，查看全局 Agent 规则与本机链接状态。",
+  "author": "tannt",
+  "isDesktopOnly": true
+}

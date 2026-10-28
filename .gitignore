@@ -1,0 +1,10 @@
+/tmp/
+/dist/
+/local-evidence/
+/apps/workbench/data/
+/.agents/
+/.claude/
+/node_modules/
+/.scratch/*/tmp/
+.DS_Store
+*.log

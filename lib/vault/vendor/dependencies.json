@@ -1,0 +1,12 @@
+{
+  "name": "yaml",
+  "version": "2.9.1",
+  "tarball": "https://registry.npmjs.org/yaml/-/yaml-2.9.1.tgz",
+  "integrity": "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==",
+  "source": "https://github.com/eemeli/yaml",
+  "included": [
+    "dist/",
+    "LICENSE",
+    "package.json"
+  ]
+}

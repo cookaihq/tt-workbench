@@ -1,0 +1,65 @@
+'use strict';
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { randomUUID } = require('node:crypto');
+const packages = require('../../../lib/workbench/package.cjs');
+const source = path.resolve(__dirname, '../../..');
+const run = (script, args, input, cwd) => spawnSync(process.execPath, [script, ...args], { cwd, input, encoding: 'utf8' });
+async function fixture(t) {
+  const base = path.join(source, 'tmp/package-tests'); await fs.mkdir(base, { recursive: true });
+  const root = await fs.mkdtemp(path.join(base, '独立知识库-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  return root;
+}
+test('完整包安装到不同名称的空库，仅写插件；已安装 CLI 无需源库及 Obsidian', async t => {
+  const root = await fixture(t), configDir = 'custom-settings';
+  const bundle = packages.decodeBundle(packages.encodeBundle(await packages.collectPackage(source)));
+  const result = await packages.installPackage(bundle, { vault: root, configDir });
+  assert.deepEqual(await fs.readdir(root), [configDir]);
+  assert.deepEqual(await fs.readdir(path.join(root, configDir)), ['plugins']);
+  assert.equal((await packages.installPackage(bundle, { vault: root, configDir, check: true })).ok, true);
+  const cli = path.join(result.target, 'scripts/vault/write.mjs');
+  const info = run(cli, ['--vault', root], JSON.stringify({ action: 'info', list: true }), root);
+  assert.equal(info.status, 0, info.stderr); assert.equal(JSON.parse(info.stdout).vault, root);
+  const missing = run(cli, [], JSON.stringify({ action: 'info' }), root);
+  assert.equal(missing.status, 1); assert.equal(JSON.parse(missing.stdout).code, 'VAULT_REQUIRED');
+  const request = { action: 'capture', title: '独立安装验证', content: 'Synthetic test only', request_id: randomUUID(), privacy: 'ordinary' };
+  const capture = run(cli, ['--vault', root], JSON.stringify(request), root);
+  assert.equal(capture.status, 0, capture.stdout + capture.stderr);
+  const created = JSON.parse(capture.stdout); assert.match(await fs.readFile(path.join(root, created.path), 'utf8'), /Synthetic test only/);
+  const repeated = run(cli, ['--vault', root], JSON.stringify(request), root);
+  assert.equal(repeated.status, 0, repeated.stdout); assert.equal(JSON.parse(repeated.stdout).path, created.path);
+  await fs.writeFile(path.join(root, configDir, 'app.json'), JSON.stringify({ attachmentFolderPath: './attachments' }));
+  const attached = run(cli, ['--vault', root, '--config-dir', configDir], JSON.stringify({ action: 'attach', path: created.path, expected: await fs.readFile(path.join(root, created.path), 'utf8'), filename: 'sample.txt', base64: 'c2FtcGxl', privacy: 'ordinary', request_id: randomUUID() }), root);
+  assert.equal(attached.status, 0, attached.stdout + attached.stderr);
+  assert.equal(await fs.readFile(path.join(root, JSON.parse(attached.stdout).attachmentPath), 'utf8'), 'sample');
+  assert.ok(!(await fs.readdir(root)).includes('.agents'));
+});
+test('帮助和只读检查不安装；Skill 注册独立执行并拒绝覆盖未知入口', async t => {
+  const root = await fixture(t);
+  const help = run(path.join(source, 'scripts/workbench/install.mjs'), ['--help'], undefined, root);
+  assert.equal(help.status, 0); assert.deepEqual(await fs.readdir(root), []);
+  const check = await packages.installPackage(await packages.collectPackage(source), { vault: root, check: true });
+  assert.equal(check.ok, false); assert.deepEqual(await fs.readdir(root), []);
+  const result = await packages.installPackage(await packages.collectPackage(source), { vault: root });
+  const installer = path.join(result.target, 'scripts/agent-skills/install.mjs');
+  const registered = run(installer, ['--vault', root, '--agent', 'codex'], undefined, root);
+  assert.equal(registered.status, 0, registered.stderr);
+  assert.equal(await fs.realpath(path.join(root, '.agents/skills/tannt-capture')), path.join(result.target, 'skills/tannt-capture'));
+  assert.equal(run(installer, ['--vault', root, '--agent', 'codex', '--check'], undefined, root).status, 0);
+  const entry = path.join(root, '.agents/skills/tannt-capture'); await fs.unlink(entry); await fs.mkdir(entry);
+  await fs.writeFile(path.join(entry, 'keep.txt'), 'mine');
+  assert.equal(run(installer, ['--vault', root, '--agent', 'codex'], undefined, root).status, 1);
+  assert.equal(await fs.readFile(path.join(entry, 'keep.txt'), 'utf8'), 'mine');
+});
+test('安装期间出现外部改动时拒绝替换，恢复并发编辑结果', async t => {
+  const root = await fixture(t), first = await packages.collectPackage(source);
+  const initial = await packages.installPackage(first, { vault: root });
+  const next = { files: new Map(first.files), release: { ...first.release, files: { ...first.release.files } } };
+  next.files.set('styles.css', Buffer.from('/* new */')); next.release.files['styles.css'] = packages.hash(next.files.get('styles.css'));
+  await assert.rejects(packages.installPackage(next, { vault: root, beforeReplace: () => fs.writeFile(path.join(initial.target, 'styles.css'), '/* external */') }), { code: 'LOCAL_CHANGES' });
+  assert.equal(await fs.readFile(path.join(initial.target, 'styles.css'), 'utf8'), '/* external */');
+});

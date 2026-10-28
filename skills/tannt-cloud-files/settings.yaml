@@ -1,0 +1,10 @@
+schema: tannt-cloud-settings/v1
+provider: baidu
+# 非敏感账号目标唯一维护于 config/cloud-storage-targets.jsonc，通过 FNS 普通文件同步；授权凭据在库外本机保存。
+vault_directory: tannt
+extensions:
+  - mp3
+  - mp4
+  - mov
+  - wav
+  - zip
