@@ -1,6 +1,40 @@
 {
   // 活动 Skill：安装器为所选 Agent 建立指向 skills/<名称>/ 的发现链接。
   "skills": ["tannt-capture", "tannt-update-note", "tannt-cloud-files", "tannt-sync-agent-config", "tannt-organize-agent-rules"],
-  // 退役名称：只清理已知来源的旧链接，不安装这些 Skill。
-  "retired": ["tannt-save-note", "tannt-setup-device"]
+  // 退役名称仅记录历史；普通安装不会移除清单外的入口。
+  "retired": ["tannt-save-note", "tannt-setup-device"],
+  "presentation": {
+    "tannt-capture": {
+      "title": "保存新内容",
+      "summary": "把想法、文字或链接存入知识库。",
+      "example": "把下方提供的想法存入收件箱，保留原文并注明来源。请先等我提供内容。",
+      "next": "明确要保存的内容与来源；暂时没有归属时可先存入收件箱。"
+    },
+    "tannt-update-note": {
+      "title": "更新已有笔记",
+      "summary": "补充笔记、整理收件箱、归档或恢复。",
+      "example": "请等我提供目标笔记路径与补充内容，再按我的要求追加并注明来源。",
+      "next": "提供明确的目标笔记路径和要修改的内容，保留原文与已有属性。"
+    },
+    "tannt-cloud-files": {
+      "title": "管理网盘文件",
+      "summary": "上传、按需下载、核验与管理托管文件。",
+      "example": "请等我指定资料目录，再检查其中哪些托管文件尚未下载。",
+      "next": "首次使用时按 Skill 流程单独配置网盘账号。安装 Skill 不进行账号授权。"
+    },
+    "tannt-sync-agent-config": {
+      "title": "检查 Agent 配置",
+      "summary": "按知识库自己的清单检查当前 Agent。",
+      "example": "检查当前 Agent 的配置，先列出与当前知识库配置清单的差异。",
+      "next": "先核对当前库的配置清单；FNS 配置在对应页面单独管理。",
+      "related": "@fns"
+    },
+    "tannt-organize-agent-rules": {
+      "title": "整理 Agent 规则",
+      "summary": "整理已有全局规则，并接入确认的规则源。",
+      "example": "检查这台电脑已有的 Agent 规则与已确认规则源，先提出整理方案。",
+      "next": "在 Agent 规则页面选择正式规则源并核对入口，再在会话中处理。",
+      "related": "@agent-rules"
+    }
+  }
 }

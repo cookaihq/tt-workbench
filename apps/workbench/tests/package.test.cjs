@@ -17,6 +17,7 @@ async function fixture(t) {
 test('完整包安装到不同名称的空库，仅写插件；已安装 CLI 无需源库及 Obsidian', async t => {
   const root = await fixture(t), configDir = 'custom-settings';
   const bundle = packages.decodeBundle(packages.encodeBundle(await packages.collectPackage(source)));
+  assert.ok(![...bundle.files.keys()].some(name => name.startsWith('docs/global-agent-instructions/')));
   const result = await packages.installPackage(bundle, { vault: root, configDir });
   assert.deepEqual(await fs.readdir(root), [configDir]);
   assert.deepEqual(await fs.readdir(path.join(root, configDir)), ['plugins']);
@@ -37,6 +38,8 @@ test('完整包安装到不同名称的空库，仅写插件；已安装 CLI 无
   assert.equal(attached.status, 0, attached.stdout + attached.stderr);
   assert.equal(await fs.readFile(path.join(root, JSON.parse(attached.stdout).attachmentPath), 'utf8'), 'sample');
   assert.ok(!(await fs.readdir(root)).includes('.agents'));
+  const rules = run(path.join(result.target, 'scripts/global-agent-instructions/install.mjs'), ['--check'], undefined, root);
+  assert.equal(rules.status, 1); assert.match(rules.stderr, /--source/);
 });
 test('帮助和只读检查不安装；Skill 注册独立执行并拒绝覆盖未知入口', async t => {
   const root = await fixture(t);

@@ -24,7 +24,7 @@
 .tannt-workbench h1 { font-size: 28px; line-height: 1.35; font-weight: 650; letter-spacing: -.7px; margin-bottom: 0; }
 .tannt-workbench h2 { font-size: 21px; line-height: 1.5; letter-spacing: -.3px; margin-bottom: 12px; }
 .tannt-workbench [hidden] { display: none !important; }
-.tannt-workbench:is([data-page=fns],[data-page=agent-rules]) :is(.tw-grid,.tw-stats,.tw-filters) { display: none; }
+.tannt-workbench:is([data-page=fns],[data-page=agent-rules],[data-page=skills]) :is(.tw-grid,.tw-stats,.tw-filters) { display: none; }
 .tw-fns-panel { min-width: 0; }
 .tw-fns-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 18px; }
 .tw-fns-context { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 20px 0; }
@@ -283,6 +283,58 @@
 
 /* Read-only Agent rules use the approved status overview layout. */
 .tw-rules-page { min-width: 0; }
+.tw-skills-page { min-width: 0; }
+.tw-skills-scope,.tw-skills-toolbar,.tw-skills-list-head,.tw-skills-item-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.tw-skills-scope { padding: 18px 22px; background: var(--tw-paper); border: 1px solid var(--tw-line); border-radius: var(--tw-radius); margin-bottom: 20px; }
+.tw-skills-scope > div { min-width: 0; }
+.tw-skills-scope strong { font-size: 18px; }
+.tw-skills-hosts,.tw-skills-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tw-skills-hosts { flex-shrink: 0; }
+.tannt-workbench .tw-skills-hosts button[aria-pressed=true] { background: var(--tw-green); color: white; border-color: var(--tw-green); }
+.tw-skills-toolbar { margin: 0 0 14px; flex-wrap: wrap; font-size: 12px; }
+.tw-skills-grid { display: grid; grid-template-columns: minmax(280px,.95fr) minmax(320px,1.15fr); gap: 20px; align-items: start; }
+.tw-skills-list,.tw-skills-detail { min-width: 0; border: 1px solid var(--tw-line); border-radius: var(--tw-radius); background: var(--tw-paper); overflow: hidden; }
+.tw-skills-list-head { padding: 16px 20px; border-bottom: 1px solid var(--tw-line); font-size: 12px; }
+.tannt-workbench .tw-skills-list-head h2 { font-size: 16px; margin: 0; }
+.tannt-workbench .tw-skills-item { display: block; width: 100%; padding: 17px 20px; border: 0; border-bottom: 1px solid var(--tw-line); border-radius: 0; text-align: left; white-space: normal; }
+.tannt-workbench .tw-skills-item:last-child { border-bottom: 0; }
+.tannt-workbench .tw-skills-item[aria-pressed=true] { background: var(--tw-soft); box-shadow: inset 3px 0 var(--tw-green); }
+.tw-skills-item-title { gap: 8px; flex-wrap: wrap; }
+.tw-skills-item-title strong { font-size: 14px; }
+.tw-skills-id { font: 11px/1.8 ui-monospace,Consolas,monospace; color: var(--tw-muted); overflow-wrap: anywhere; margin: 4px 0; }
+.tw-skills-summary { font-size: 12px; font-weight: 400; color: var(--tw-muted); overflow-wrap: anywhere; }
+.tw-skills-badge { display: inline-block; flex-shrink: 0; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 500; background: #eef0e8; color: #5e685e; }
+.tw-skills-badge[data-status=installed] { background: #dcebd9; color: #375c40; }
+.tw-skills-badge:is([data-status=broken],[data-status=conflict]) { background: #f7e9ce; color: #83602c; }
+.tw-skills-badge[data-status=error] { background: #f6e2dc; color: #994f3d; }
+.tw-skills-detail { padding: 24px; }
+.tannt-workbench .tw-skills-detail h2 { margin: 12px 0 0; font-size: 22px; }
+.tw-skills-detail p { font-size: 13px; overflow-wrap: anywhere; }
+.tw-skills-detail h3 { font-size: 14px; margin: 24px 0 8px; }
+.tw-skills-facts { background: #f7f8f1; border: 1px solid var(--tw-line); border-radius: 9px; padding: 14px; margin: 20px 0; font-size: 12px; }
+.tw-skills-facts p { margin: 10px 0 0; }
+.tw-skills-path { font: 11px/1.9 ui-monospace,Consolas,monospace; color: var(--tw-muted); overflow-wrap: anywhere; }
+.tw-skills-notice,.tw-skills-receipt { padding: 14px 18px; margin-bottom: 16px; border: 1px solid #e6d5ad; border-radius: 9px; background: #fbf5e9; font-size: 12px; overflow-wrap: anywhere; }
+.tw-skills-receipt { background: #f0f5eb; border-color: #d6e0ce; }
+.tw-skills-receipt strong { display: block; margin-bottom: 8px; }
+.tw-skills-receipt > div + div { margin-top: 5px; }
+.tw-skills-example { padding: 12px 14px; margin: 12px 0; border-left: 3px solid #b4c5a8; background: #f4f6ee; font-size: 12px; }
+.tw-skills-foot { font-size: 11px; color: var(--tw-muted); margin: 16px 0; }
+.tannt-workbench .tw-skills-dialog { width: min(640px,90vw); max-height: 85vh; overflow-y: auto; border: 1px solid var(--tw-line); border-radius: var(--tw-radius); padding: 26px; background: var(--tw-paper); color: var(--tw-ink); }
+.tw-skills-dialog::backdrop { background: #26302766; }
+.tw-skills-dialog .tw-skills-actions { justify-content: flex-end; margin-top: 20px; }
+.tw-skills-dialog p,.tw-skills-dialog li { font-size: 13px; overflow-wrap: anywhere; }
+.tw-skills-dialog li { margin: 10px 0; }
+.tw-rules-source { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; align-items: end; }
+.tw-rules-source label { display: grid; gap: 5px; flex: 1; min-width: 190px; font-size: 12px; }
+@container (max-width: 1000px) {
+  .tw-skills-grid { grid-template-columns: minmax(0,1fr); }
+}
+@container (max-width: 650px) {
+  .tw-skills-scope { align-items: flex-start; flex-direction: column; padding: 16px; }
+  .tw-skills-detail { padding: 18px; }
+  .tw-skills-item-title { align-items: flex-start; }
+}
 .tw-rules-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .tw-rules-actions select { max-width: 100%; font-size: 12px; }
 .tw-rules-status,.tw-rules-reader,.tw-rules-prompt { min-width: 0; background: var(--tw-paper); border: 1px solid var(--tw-line); border-radius: var(--tw-radius); overflow: hidden; }

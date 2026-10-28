@@ -1,13 +1,13 @@
 ---
 name: tannt-organize-agent-rules
-description: 整理当前电脑已有的全局 Agent 规则：核查来源、澄清含义、提出主指令与场景指令方案，确认后写入工作台仓库的正式规则源并修复入口、验证加载。用于旧规则整理或接入修复；日常新增编辑沿用规则维护场景。
+description: 整理当前电脑已有的全局 Agent 规则：核查来源、澄清含义、提出主指令与场景指令方案，确认后写入用户选择的正式规则源并修复入口、验证加载。用于旧规则整理或接入修复；日常新增编辑沿用规则维护场景。
 ---
 
 先读取 `<软件根>/docs/agents/package-layout.md`。从本 Skill 的真实路径（解析发现链接后）向上两级得到 `<软件根>`；下文 `docs/`、`scripts/` 等指软件资源，业务路径和 `config/` 指用户明确的目标知识库。读取目标库实际 Agent 入口，命令显式传 `--vault "<库绝对路径>"`，不以软件目录推断目标库。
 
 ## 确认目标与事实
 
-1. 确认实际目标库、可写的正式规则源、当前宿主及版本、系统、用户目录、实际配置目录和本次授权阶段。读取目标库的 `AGENTS.md` 及软件根的 `GLOSSARY.md`、`docs/rules/scope-and-directories.md`，以及 `docs/global-agent-instructions/README.md` 和其中的 `scenarios-agent-instructions/maintaining-agent-instructions-and-project-rules.md`。后两者是规则与迁移要求的正式源；本 Skill 编排操作，不另存规则正文。
+1. 确认实际目标库、可写的正式规则源、当前宿主及版本、系统、用户目录、实际配置目录和本次授权阶段。读取目标库的 `AGENTS.md` 及软件根的 `GLOSSARY.md`、`docs/rules/scope-and-directories.md`，以及 `<规则源>/README.md` 和 `<规则源>/scenarios-agent-instructions/maintaining-agent-instructions-and-project-rules.md`。后两者来自本人确认的知识库或规则仓库；工作台软件包不含个人正文。缺少已确认源或维护说明时先定位或确认，保留现有入口。
 2. 按全局说明的“已有全局指令的评估与迁移”逐项检查主入口、共用场景入口、覆盖文件、真实源、内容版本和必要引用。页面提示词中的项目、宿主、路径与状态均重新核查；明确选择的宿主作为范围，页面观察不作为当前事实或变更批准。
 3. 分别记录文件类型、原链接文字目标、直接目标、最终真实目标和可读性。以文件系统事实区分普通文件（即使同文）、直接链接、间接链接、其他目标、断链、缺失及未知。检查失败只阻止依赖该项的动作，其他独立结果保留。
 

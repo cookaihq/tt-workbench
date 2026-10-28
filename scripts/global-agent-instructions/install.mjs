@@ -2,11 +2,9 @@
 import { lstat, mkdir, readFile, readlink, realpath, symlink, unlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-const root = await realpath(fileURLToPath(new URL('../../', import.meta.url)));
-let source = path.join(root, 'docs/global-agent-instructions');
+let source;
 const userDirectory = os.homedir();
 const stat = async file => lstat(file).catch(error => {
   if (error.code !== 'ENOENT') throw error;
@@ -15,13 +13,17 @@ const stat = async file => lstat(file).catch(error => {
 
 try {
   const { values, tokens } = parseArgs({ options: { check: { type: 'boolean' }, help: { type: 'boolean' }, agent: { type: 'string', default: 'all' }, source: { type: 'string' } }, tokens: true });
-  if (values.source) { if (!path.isAbsolute(values.source)) throw Error("--source 须为规则源绝对路径"); source = await realpath(values.source); }
   const agent = values.agent;
   if (!['codex', 'claude', 'all'].includes(agent) || tokens.filter(token => token.name === 'agent').length > 1) throw Error('--agent 只能指定一次，值为 codex、claude 或 all');
   const agents = agent === 'all' ? ['codex', 'claude'] : [agent];
   if (values.help) {
-    console.log('用法：node scripts/global-agent-instructions/install.mjs [--source <规则源绝对路径>] [--agent codex|claude|all] [--check]。默认 all；只处理所选宿主及共用场景入口。旧共享中间目录仅在 all 时核对和清理，不覆盖其他内容。');
+    console.log('用法：node scripts/global-agent-instructions/install.mjs --source <已确认规则源绝对路径> [--agent codex|claude|all] [--check]。默认 all；只处理所选宿主及共用场景入口。软件包不提供个人规则正文。');
   } else {
+    if (!values.source || !path.isAbsolute(values.source) || tokens.filter(t => t.name === 'source').length !== 1) throw Error('必须用 --source 显式指定一次已确认的规则源绝对路径。');
+    source = path.resolve(values.source);
+    if (!(await stat(source))?.isDirectory() || (await stat(source)).isSymbolicLink() || await realpath(source) !== source) throw Error('规则源必须是未经链接转向的普通目录。');
+    const scenes = await stat(path.join(source, 'scenarios-agent-instructions'));
+    if (!scenes?.isDirectory() || scenes.isSymbolicLink()) throw Error('规则场景源必须是普通目录。');
     const check = Boolean(values.check);
     for (const [host, name, expected] of [['codex', 'CODEX_HOME', '.codex'], ['claude', 'CLAUDE_CONFIG_DIR', '.claude']]) {
       if (!agents.includes(host)) continue;

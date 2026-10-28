@@ -6,7 +6,7 @@ const { AgentRulesReader, skillPrompt } = require('../agent-rules.js');
 
 async function fixture() {
   // Runtime fixtures use ordinary names in the existing excluded data area.
-  const base = path.resolve(__dirname, '../data/agent-rules-tests');
+  const base = path.resolve(__dirname, '../../../tmp/agent-rules-tests');
   await fs.mkdir(base, { recursive: true });
   const root = await fs.mkdtemp(path.join(base, 'run-'));
   const home = path.join(root, 'user'), directory = path.join(home, 'codex');
@@ -20,7 +20,7 @@ async function fixture() {
   const map = p => p === path.join(home, '.agents/scenarios-agent-instructions') ? path.join(home, 'scenarios') : p;
   const io = { ...fs };
   for (const key of ['lstat', 'stat', 'realpath', 'readlink', 'open']) io[key] = (p, ...args) => fs[key](map(p), ...args);
-  const reader = new AgentRulesReader(root, { home, env: { CODEX_HOME: directory }, io });
+  const reader = new AgentRulesReader(root, { home, env: { CODEX_HOME: directory }, io, sourceDirectory: source });
   return { root, home, source, scenes, directory, reader, io,
     main: path.join(directory, 'AGENTS.md'), scenarioEntry: path.join(home, 'scenarios') };
 }
@@ -29,6 +29,18 @@ async function connect(h) {
   await fs.symlink(path.join(h.source, 'AGENTS.md'), h.main, 'file');
   await fs.symlink(h.scenes, h.scenarioEntry, 'dir');
 }
+
+test('未明确选择源时不回落到知识库或软件目录；支持独立规则目录和旧显式根设置', async () => {
+  const h = await fixture();
+  const unselected = new AgentRulesReader(h.root, { home: h.home, env: {} });
+  const empty = await unselected.scan(); assert.equal(empty.status, 'unconfigured'); assert.deepEqual(empty.documents, []); assert.deepEqual(empty.entries, []);
+  assert.match(skillPrompt(empty), /先.*选择/);
+  const legacy = new AgentRulesReader(h.root, { sourceRoot: h.root, home: h.home, env: {} });
+  assert.equal((await legacy.scan()).source, h.source);
+  const unrelated = new AgentRulesReader(h.root, { sourceDirectory: path.join(h.root, 'missing'), home: h.home, env: {} });
+  assert.equal((await unrelated.scan()).status, 'unknown'); assert.deepEqual((await unrelated.scan()).documents, []);
+  assert.throws(() => new AgentRulesReader(h.root, { sourceDirectory: 'relative' }), /绝对路径/);
+});
 
 test('普通文件即使内容相同也未接入；读取与提示词不写入原文件', async () => {
   const h = await fixture(), original = await fs.readFile(path.join(h.source, 'AGENTS.md'), 'utf8');

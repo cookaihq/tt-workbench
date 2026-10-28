@@ -26,13 +26,15 @@ node scripts/workbench/install.mjs --vault "D:\Knowledge\MyVault" --bundle "dist
 
 ## Skill 与 Agent 工具
 
-Skill 安装是独立操作，使用已安装插件内的安装器，避免日常使用依赖开发仓库：
+在工作台「系统 → Skill 安装」中，选择 Codex 或 Claude Code，安装单项或全部未安装项。页面提供状态检查、已知入口修复、移除及使用说明。也可独立使用已安装插件内的安装器：
 
 ```powershell
 node "D:\Knowledge\MyVault\.obsidian\plugins\tannt-workbench\scripts\agent-skills\install.mjs" --vault "D:\Knowledge\MyVault" --agent codex
 ```
 
-Claude Code 使用 `--agent claude`；明确需要两个宿主时使用 `--agent all`。在目标知识库中新开会话验证发现，参见[接入说明](docs/workbench/agent-skill-setup.md)。Skill 安装 UI 尚处于需求与原型阶段，确认后实施。
+Claude Code 使用 `--agent claude`；明确需要两个宿主时使用 `--agent all`。在目标知识库中新开会话验证发现，参见[接入说明](docs/workbench/agent-skill-setup.md)。安装前核验本机 Git/FNS 排除；同名冲突逐项保留。
+
+「Agent 规则」读取用户选择的正式规则目录。个人全局指令由知识库或规则仓库维护，工作台安装包不包含这些正文；规则接入工具要求显式 `--source`。
 
 独立 CLI 通过 stdin 接收 JSON，始终指定 `--vault <绝对路径>`，无需 Obsidian 运行。规则／工具的位置与目标库分别解析，见[路径约定](docs/agents/package-layout.md)及[文件操作](docs/agents/vault-file-operations.md)。
 

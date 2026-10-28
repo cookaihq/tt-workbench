@@ -14,6 +14,7 @@ let AttachmentStore;
 let ROOTS, mapPreviousPath;
 let IssueStore, IssueUI, isIssuePath, isIssueDocumentPath;
 let AgentRulesReader, AgentRulesUI;
+let SkillInstallationUI;
 let FnsUI;
 let UpdatesUI;
 const VIEW_TYPE = "tannt-workbench";
@@ -39,7 +40,7 @@ class WorkbenchView extends ItemView {
   getViewType() { return VIEW_TYPE; }
   getDisplayText() { return "tannt 工作台"; }
   getIcon() { return "panels-top-left"; }
-  getState() { return { path: this.selectedPath, scope: this.pageScope, rulesAgent: this.agentRulesUI?.agent || this.rulesAgent }; }
+  getState() { return { path: this.selectedPath, scope: this.pageScope, rulesAgent: this.agentRulesUI?.agent || this.rulesAgent, skillsAgent: this.skillsUI?.agent || this.skillsAgent }; }
 
   onResize() {
     if (this.resizeFrame) return;
@@ -65,6 +66,8 @@ class WorkbenchView extends ItemView {
     this.selectedPath = mapPreviousPath(state?.path);
     this.pageScope = typeof state?.scope === "string" ? mapPreviousPath(state.scope) : "@tasks";
     this.rulesAgent = ["codex", "claude"].includes(state?.rulesAgent) ? state.rulesAgent : "codex";
+    this.skillsAgent = ["codex", "claude"].includes(state?.skillsAgent) ? state.skillsAgent : "codex";
+    if (this.skillsUI) { this.skillsUI.leave(); this.skillsUI.agent = this.skillsAgent; }
     if (this.agentRulesUI) {
       this.agentRulesUI.leave();
       this.agentRulesUI.agent = this.rulesAgent;
@@ -113,6 +116,9 @@ class WorkbenchView extends ItemView {
     this.agentRulesUI.build(this.workspaceEl, pageActions);
     this.agentRulesUI.agent = this.rulesAgent;
     this.agentRulesUI.select.value = this.rulesAgent;
+    this.skillsUI = new SkillInstallationUI(this);
+    this.skillsUI.build(this.workspaceEl);
+    this.skillsUI.agent = this.skillsAgent || "codex";
     this.fnsUI = new FnsUI(this);
     this.fnsUI.build(this.workspaceEl);
     this.newIssueButton = this.button(pageActions, "新建开发 Issue", "新建 Issue", () => this.issueUI.openCreate());
@@ -299,7 +305,7 @@ class WorkbenchView extends ItemView {
     this.selectedPath = ""; ++this.sequence; this.clearBody(); this.setActions(false); this.refreshList();
     this.app.workspace.requestSaveLayout();
     if (scope === "@issues") { this.issueUI.selectFirst = true; return; }
-    if (scope === "@fns" || scope === "@agent-rules") return;
+    if (["@fns", "@agent-rules", "@skills"].includes(scope)) return;
     const first = this.listEl.querySelector("button[data-path]");
     if (first) first.click();
     else { this.noteInfoEl.createEl("h2", { text: "从这里开始" }); this.bodyEl.createEl("p", { text: scope === "@projects" ? "创建一个项目，记录共同目标与资料。" : scope === "@tasks" ? "任务会在这里显示进度、下一步和相关笔记。" : "选择一份笔记，直接在这里阅读。", cls: "tw-empty" }); this.setStatus("", "empty"); }
@@ -329,6 +335,9 @@ class WorkbenchView extends ItemView {
     }
     const system = this.nav.createDiv({ cls: "tw-nav-system", attr: { role: "group", "aria-label": "系统" } });
     system.createDiv({ text: "系统", cls: "tw-nav-label tw-system-label" });
+    const skillsNav = this.button(system, "Skill 安装", "", () => this.navigate("@skills"));
+    skillsNav.addClass("tw-nav-item"); setIcon(skillsNav.createSpan({ cls: "tw-nav-icon" }), "puzzle");
+    skillsNav.createSpan({ text: "Skill 安装" }); skillsNav.setAttribute("aria-current", this.pageScope === "@skills" ? "page" : "false");
     const rulesNav = this.button(system, "Agent 规则", "", () => this.navigate("@agent-rules"));
     rulesNav.addClass("tw-nav-item"); setIcon(rulesNav.createSpan({ cls: "tw-nav-icon" }), "book-open-check");
     rulesNav.createSpan({ text: "Agent 规则" }); rulesNav.setAttribute("aria-current", this.pageScope === "@agent-rules" ? "page" : "false");
@@ -342,14 +351,19 @@ class WorkbenchView extends ItemView {
     this.newProjectButton.hidden = !isProject;
     this.newTaskButton.hidden = !isTask;
     this.newIssueButton.hidden = this.pageScope !== "@issues";
-    const isRules = this.pageScope === "@agent-rules", isSystem = isRules || this.pageScope === "@fns";
-    this.contentEl.dataset.page = isRules ? "agent-rules" : this.pageScope === "@fns" ? "fns" : this.pageScope === "@issues" ? "issues" : "business";
+    const isRules = this.pageScope === "@agent-rules", isSkills = this.pageScope === "@skills", isSystem = isRules || isSkills || this.pageScope === "@fns";
+    this.contentEl.dataset.page = isSkills ? "skills" : isRules ? "agent-rules" : this.pageScope === "@fns" ? "fns" : this.pageScope === "@issues" ? "issues" : "business";
     this.fnsUI.panel.hidden = this.pageScope !== "@fns";
     if (!isRules) this.agentRulesUI.leave();
+    if (!isSkills) this.skillsUI.leave();
     this.searchInput.disabled = isSystem;
     this.captureButton.hidden = this.pageScope === "@issues" || isSystem;
     this.editButton.setText(this.pageScope === "@issues" ? "编辑内容" : "编辑原笔记");
     this.editButton.setAttribute("aria-label", this.pageScope === "@issues" ? "编辑 Issue 内容" : "在 Obsidian 中编辑原笔记");
+    if (isSkills) {
+      ++this.browseUI.generation; ++this.issueUI.generation;
+      this.skillsUI.enter(); return;
+    }
     if (isRules) {
       ++this.browseUI.generation; ++this.issueUI.generation;
       this.agentRulesUI.enter(); return;
@@ -608,6 +622,7 @@ class WorkbenchView extends ItemView {
     if (this.issueTimer) window.clearInterval(this.issueTimer);
     if (this.issueUI) ++this.issueUI.generation;
     this.agentRulesUI?.leave();
+    this.skillsUI?.leave();
     if (this.fnsUI) this.fnsUI.dispose();
     if (this.updatesUI) this.updatesUI.dispose();
     ++this.sequence;
@@ -653,6 +668,8 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
     ({ IssueUI } = localRequire("./issue-ui.js"));
     ({ AgentRulesReader } = localRequire("./agent-rules.js"));
     ({ AgentRulesUI } = localRequire("./agent-rules-ui.js"));
+    ({ SkillInstallationUI } = localRequire("./skill-installation-ui.js"));
+    const { SkillManager } = localRequire("./lib/agent-skills/manager.cjs");
     ({ FnsUI } = localRequire("./fns-ui.js"));
     ({ UpdatesUI } = localRequire("./updates-ui.js"));
     const { WorkbenchUpdates } = localRequire("./updates.js");
@@ -676,7 +693,23 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
       if (report.runtime.enabled && !report.runtime.loaded) throw Object.assign(new Error("FNS 尚未加载磁盘中的排除规则，请先重新加载 FNS。"), { code: "FNS_NOT_READY" });
     };
     this.issues = new IssueStore(this.settings.developmentRoot || this.app.vault.adapter.getBasePath());
-    this.agentRules = new AgentRulesReader(this.app.vault.adapter.getBasePath(), { sourceRoot: this.settings.rulesRoot || moduleRoot, sourceEditable: Boolean(this.settings.rulesRoot) });
+    this.agentRules = new AgentRulesReader(this.app.vault.adapter.getBasePath(), { sourceRoot: this.settings.rulesRoot, sourceDirectory: this.settings.rulesSource });
+    this.setRulesSource = async sourceDirectory => {
+      const reader = new AgentRulesReader(this.app.vault.adapter.getBasePath(), { sourceDirectory });
+      const checked = await reader.documents();
+      if (checked.errors.length) throw Error(checked.errors.join('；'));
+      const next = { ...this.settings, rulesSource: sourceDirectory };
+      await this.saveData(next); this.settings = next; this.agentRules = reader;
+    };
+    this.skills = new SkillManager({ vault: this.app.vault.adapter.getBasePath(), packageRoot: moduleRoot, configDir: this.app.vault.configDir });
+    this.beforeSkillWrite = async agent => {
+      const runtime = await this.fns.runtime.inspect();
+      if (runtime.enabled) {
+        if (!runtime.loaded || !runtime.settings) throw Error('FNS 当前加载状态无法核验，请先检查 FNS 配置同步页面。');
+        const { normalize } = localRequire('./lib/fns/rules.cjs');
+        validateScope(normalize(runtime.settings), [this.skills.host(agent).directory, this.skills.runtime]);
+      }
+    };
     this.reader = new NoteReader(this.app.vault);
     this.inbox = new InboxStore(this.reader, { parseYaml, getFrontMatterInfo });
     this.editor = new NoteEditor(this.reader, { parseYaml });
@@ -690,6 +723,7 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
     this.addCommand({ id: "open-workbench-window", name: "在独立窗口打开工作台", callback: () => this.openWorkbench(true) });
     this.addCommand({ id: "open-issues", name: "打开开发 Issue", callback: async () => { const view = await this.openWorkbench(); view.navigate("@issues"); } });
     this.addCommand({ id: "open-agent-rules", name: "打开 Agent 规则", callback: async () => { const view = await this.openWorkbench(); view.navigate("@agent-rules"); } });
+    this.addCommand({ id: "open-skill-installation", name: "打开 Skill 安装", callback: async () => { const view = await this.openWorkbench(); view.navigate("@skills"); } });
     this.addCommand({ id: "open-fns-sync", name: "打开 FNS 配置同步", callback: async () => { const view = await this.openWorkbench(); view.navigate("@fns"); } });
     this.addCommand({ id: "check-workbench-updates", name: "检查工作台更新", callback: async () => { const view = await this.openWorkbench(); view.updatesUI.open(); void this.updates.check(); } });
     this.registerObsidianProtocolHandler("tannt-capture", async params => {
