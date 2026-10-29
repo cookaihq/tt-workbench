@@ -6,7 +6,7 @@ Issue 保存目标、验收条件与规格摘要；详细规格及实施证据�
 
 ## Target and authentication
 
-所有远端操作遵循 [项目 Git 使用说明](git.md) 的凭证来源与按次鉴权要求。
+所有远端操作遵循 [Git 仓库接入、提交与版本发布](git-access-commit-and-release.md) 的凭证来源与按次鉴权要求。
 从其中指定的本仓独立凭据文件读取当前 Token，核验忽略、文件类型及权限；
 清除继承的 Token 与调试注入，仅将文件中读取的值以 `GH_TOKEN` 传入本次 `gh` 子进程，
 固定 `GH_HOST=github.com`，禁用交互；完成后释放。身份验证使用 `gh api user --jq .login`。
@@ -14,7 +14,7 @@ Issue 保存目标、验收条件与规格摘要；详细规格及实施证据�
 
 每次会话首次写入前执行 `gh repo view cookaihq/tt-workbench --json nameWithOwner,url,hasIssuesEnabled`，
 核对目标与 Issues 可用性。以下 Issue 命令均显式使用 `--repo cookaihq/tt-workbench`；
-仓库 URL 及鉴权配置以 `git.md` 为准。
+仓库 URL 及鉴权配置以 `git-access-commit-and-release.md` 为准。
 
 ## Conventions
 

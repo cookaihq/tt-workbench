@@ -117,4 +117,4 @@ Issue：[workbench-runtime-storage#01](issues/01-迁移工作台运行数据并�
 
 ## 并行检出保护
 
-使用现有 `feat/skill-installation` 检出，未创建或切换分支/Worktree，未再次交接，未提交、推送或发布，未设置远端或处理凭据。基线 HEAD 未变。保留其他会话的 `AGENTS.md`、`README.md`、迁仓实施记录及 Git 接入文档；`docs/agents/git.md` 仅将运行目录忽略要求补上新路径。`git diff --check` 通过。完成代码测试后仅补充验收记录和 Issue 状态，不为纯记录更新重复运行全套测试。
+使用现有 `feat/skill-installation` 检出，未创建或切换分支/Worktree，未再次交接，未提交、推送或发布，未设置远端或处理凭据。基线 HEAD 未变。保留其他会话的 `AGENTS.md`、`README.md`、迁仓实施记录及 Git 接入文档；该文档（现为 [Git 仓库接入、提交与版本发布](../../docs/agents/git-access-commit-and-release.md)）当次仅将运行目录忽略要求补上新路径。`git diff --check` 通过。完成代码测试后仅补充验收记录和 Issue 状态，不为纯记录更新重复运行全套测试。

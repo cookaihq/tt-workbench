@@ -4,7 +4,7 @@
 
 ## 开发环境与测试
 
-需要 Node.js 22 或更新版本，不需要安装 npm 依赖。仓库自带 YAML 和 JSONC 解析器，来源与许可证随源码保留。Git 接入、分支、提交与发布遵循[项目 Git 使用说明](../agents/git.md)。
+需要 Node.js 22 或更新版本，不需要安装 npm 依赖。仓库自带 YAML 和 JSONC 解析器，来源与许可证随源码保留。Git 接入、分支、提交与发布遵循[Git 仓库接入、提交与版本发布](../agents/git-access-commit-and-release.md)。
 
 ```powershell
 npm test
@@ -48,7 +48,7 @@ node scripts/workbench/install.mjs --vault "D:\Knowledge\WorkbenchTest" --bundle
 
 ## 发布
 
-开始前读取并遵守[发布工作区与收尾](../agents/git.md#发布工作区与收尾)，发布验收后按该规则完成临时资源清理。
+开始前读取并遵守[发布工作区与收尾](../agents/git-access-commit-and-release.md#发布工作区与收尾)，发布验收后按该规则完成临时资源清理。
 
 1. 更新 `package.json` 与 `apps/workbench/manifest.json` 的同一版本。
 2. 执行测试与构建，核对 ZIP、展开目录和更新包包含相同的文件及清单，并完成受影响功能的隔离验收。

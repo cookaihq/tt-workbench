@@ -38,3 +38,11 @@
 本轮验证覆盖本机正文、索引覆盖、文件路径、所新增锚点及静态场景关系。未运行新宿主会话加载或实际 Agent 行为验证，未核对其他设备同步到达。仅修改指令及说明，未运行应用测试、构建或插件安装。
 
 项目入口以工作台根为基准：`AGENTS.md`、`CLAUDE.md`、`docs/agents/` 和 `docs/rules/` 保持相对位置；场景文档中的相对 Markdown 链接以该文档所在目录解析。其他设备也须保持这些相对路径与目录关系，绝对项目根可以不同。目标库仍使用自身实际入口及其声明的路径基准。
+
+## 2026-10-29 Git 场景文档命名修订
+
+用户指出 `git.md` 未体现使用场景。依据文档实际覆盖的仓库接入与鉴权、提交协作、版本发布及收尾，将正式文件改为 `docs/agents/git-access-commit-and-release.md`，标题改为“Git 仓库接入、提交与版本发布”。规则正文保持原义，继续由 `AGENTS.md` 的“执行本项目任何 Git 操作前”入口要求读取；`CLAUDE.md` 继续导入同一入口。
+
+同步更新 `AGENTS.md`、`docs/agents/issue-tracker.md`、`docs/workbench/development.md`、`docs/workbench/updates.md`、`.scratch/releases/v0.25.1.md` 和 `.scratch/workbench-runtime-storage/implementation.md` 的引用。`.scratch/project-rule-ownership/release.json` 是历史构建的文件与哈希快照，保留当时的文件名，不能因现行文档更名而重写发布证据。
+
+本机核对新文件与原正文仅有标题差异，旧正式文件已移除，读取入口、现行路径及“发布工作区与收尾”锚点可解析，`git diff --check` 通过。本次只更名并修正引用，没有程序调用依赖旧文件名，无需应用测试、构建或插件安装；未验证新宿主会话加载与其他设备同步。其他设备须保持以工作台根为基准的 `AGENTS.md`、`CLAUDE.md` 与新场景文件的相对路径，文内链接仍以所在文档目录解析。

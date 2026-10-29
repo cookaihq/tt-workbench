@@ -25,7 +25,7 @@ Skill 安装 UI 已按确认的原型实施，当前证据见 `.scratch/workbenc
 
 | 使用场景与读取时机 | 必读文档 |
 | --- | --- |
-| 执行本项目任何 Git 操作前，包括只读检查、分支、Worktree、提交与发布 | [项目 Git 使用说明](docs/agents/git.md) |
+| 执行本项目任何 Git 操作前，包括只读检查、分支、Worktree、提交与发布 | [Git 仓库接入、提交与版本发布](docs/agents/git-access-commit-and-release.md) |
 | 探索代码、讨论领域概念、维护 `GLOSSARY.md` 或编写／修改 ADR 前 | [领域文档约定](docs/agents/domain.md) |
 | 设计或修改规则、共同概念、格式、Skill、模板、CLI、读写或展示行为，或接收目标库相关交接前 | [工作台变更联动](docs/agents/workbench-change-coordination.md) |
 | 跟踪本仓开发任务，读取、新建或更新 GitHub Issue、评论和依赖，或维护既有本地开发记录前 | [开发任务与 Issue 流程](docs/agents/issue-tracker.md) |
