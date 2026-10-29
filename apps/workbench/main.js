@@ -686,18 +686,11 @@ module.exports = class TTWorkbenchPlugin extends Plugin {
     const { FnsSyncService } = localRequire("./lib/fns/sync.cjs");
     const { createFnsRuntime } = localRequire("./fns-runtime.js");
     this.fns = new FnsSyncService({ vault: this.app.vault.adapter.getBasePath(), configDir: this.app.vault.configDir, runtime: createFnsRuntime(this.app) });
-    const { applyWorkbenchExclusions, inspectWorkbenchExclusions, codeDirectories } = localRequire("./lib/fns/workbench-scope.cjs");
+    const { applyWorkbenchExclusions, inspectWorkbenchExclusions, assertWorkbenchExclusions } = localRequire("./lib/fns/workbench-scope.cjs");
     const { validateScope } = localRequire("./lib/fns/rules.cjs");
-    this.configureCodeSync = () => applyWorkbenchExclusions(this.fns);
-    Object.defineProperty(this, 'codeSyncDirectories', { get: () => codeDirectories(this.app.vault.configDir, this.app.vault.adapter.getBasePath()) });
-    this.inspectCodeSync = () => inspectWorkbenchExclusions(this.fns);
-    this.updates.beforeInstall = async () => {
-      const report = await this.fns.inspect();
-      if (report.device.status === "missing-config") return;
-      if (!report.local) throw Object.assign(new Error("请先在 FNS 配置同步页面核对本机配置并迁回旧链接。"), { code: "FNS_NOT_READY" });
-      validateScope(report.local.rules, codeDirectories(this.app.vault.configDir, this.app.vault.adapter.getBasePath()));
-      if (report.runtime.enabled && !report.runtime.loaded) throw Object.assign(new Error("FNS 尚未加载磁盘中的排除规则，请先重新加载 FNS。"), { code: "FNS_NOT_READY" });
-    };
+    this.configureLocalProtection = () => applyWorkbenchExclusions(this.fns);
+    this.inspectLocalProtection = () => inspectWorkbenchExclusions(this.fns);
+    this.updates.beforeInstall = () => assertWorkbenchExclusions(this.fns);
     this.issues = new IssueStore(this.settings.developmentRoot || this.app.vault.adapter.getBasePath());
     this.runtimeSettings = new RuntimeSettings(this);
     this.agentRules = new AgentRulesReader(this.app.vault.adapter.getBasePath(), { sourceRoot: this.settings.rulesRoot, sourceDirectory: this.settings.rulesSource });
@@ -714,7 +707,8 @@ module.exports = class TTWorkbenchPlugin extends Plugin {
       if (runtime.enabled) {
         if (!runtime.loaded || !runtime.settings) throw Error('FNS 当前加载状态无法核验，请先检查 FNS 配置同步页面。');
         const { normalize } = localRequire('./lib/fns/rules.cjs');
-        validateScope(normalize(runtime.settings), [this.skills.host(agent).directory, this.skills.runtime]);
+        const storage = localRequire('./lib/runtime/storage.cjs');
+        validateScope(normalize(runtime.settings), [this.skills.host(agent).directory, ...storage.protectedDirectories(this.app.vault.adapter.getBasePath())]);
       }
     };
     this.reader = new NoteReader(this.app.vault);
@@ -748,10 +742,20 @@ module.exports = class TTWorkbenchPlugin extends Plugin {
     this.registerObsidianProtocolHandler("tt-capture", capture);
     this.registerObsidianProtocolHandler("tannt-capture", capture);
     this.agentBridge = new AgentBridge(this);
-    this.register(() => { void this.agentBridge.stop(); });
-    if (this.app.plugins.plugins["fast-note-sync"]) {
-      try { await this.agentBridge.start(); } catch (error) { new Notice(error.message); }
-    }
+    let unloading = false;
+    const stopBridge = () => {
+      unloading = true;
+      return this.agentBridge.stop().catch(error => console.error('tt 工作台连接服务清理失败：', error));
+    };
+    this.register(stopBridge);
+    this.registerDomEvent(window, 'unload', stopBridge);
+    // Enabled plugins can finish loading in a different order. Resolve FNS
+    // after startup, while preventing a deferred callback from reviving unload.
+    this.app.workspace.onLayoutReady(async () => {
+      if (!unloading && this.app.plugins.plugins["fast-note-sync"]) {
+        try { await this.agentBridge.start(); } catch (error) { new Notice(error.message); }
+      }
+    });
   }
 
   async openWorkbench(newWindow = false, selectedPath = "", viewState = {}) {

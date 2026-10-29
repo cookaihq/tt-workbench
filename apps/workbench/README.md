@@ -2,7 +2,7 @@
 
 桌面版在 Obsidian 内读写当前知识库的真实笔记。`0.25.0` 默认使用各实例 `.system/.workbench-runtime/`。顶部「运行数据位置」可修改或恢复默认，并迁移历史数据；安装和检查不自动搬动数据。下文 `<运行目录>` 表示该实例的实际设置。`0.23.0` 增加已确认的 A「列表＋详情」Skill 安装页面，分别管理 Codex、Claude Code 的本库入口；Agent 规则页面读取明确选择的个人规则源。软件由独立工作台仓库维护，插件安装、Skill 注册、服务配置及全局规则接入分别操作。
 
-本轮验收见 [Skill 安装实施记录](../../.scratch/workbench-skill-installation/implementation.md)。历史功能的验证范围保留在[验收索引](../../docs/workbench/verification/README.md)；新 Agent 查询、双电脑 FNS 与其他平台不能由本轮本机验收代替。
+本轮验收见 [Skill 安装实施记录](../../.scratch/workbench-skill-installation/implementation.md)。历史功能的验证范围保留在开发仓库的[本机验收索引](../../local-evidence/docs/workbench/verification/README.md)，不随软件包分发；新 Agent 查询、双电脑 FNS 与其他平台不能由本轮本机验收代替。
 
 ## 打开
 
@@ -18,7 +18,7 @@
 - **工作筛选**：活跃（待开始、进行中）、暂停、已结束但未存档、已存档分别查看。`test_fixture` 标记的验收样例默认隐藏，可显式显示；它们的状态不计作本人真实工作。存档项目的状态与进度入口只读，恢复后再继续推进。
 - **用途记录**：项目、任务和普通笔记可按需要逐项登记、更新用途；实际使用时填入采用的版本链接或历史交付位置。未登记用途的内容照常保存和阅读，不产生统一成果总览，不自动生成快照或发布。
 - **浏览笔记**：逐层浏览实际业务目录，在当前目录及子目录搜索标题、路径和正文。点击笔记链接在详情阅读，使用“返回”回到上一份；“编辑原笔记”进入 Obsidian 编辑器，修改后“重新读取”。
-- **开发 Issue**：搜索和筛选本库功能开发事项，新建、编辑描述及评论、勾选验收条件、修改分诊/标签/优先级、关联前置事项、关闭及重开，也可复制最新 Agent 上下文。宽窗口并排显示，窄窗口通过“返回 Issue 列表”往返。文件保存在 `.scratch/<功能>/issues/`；格式与操作见[说明](../../docs/workbench/issues.md)，本机交付结果见[验收记录](../../docs/workbench/verification/issues/README.md)。
+- **开发 Issue**：搜索和筛选开发根的功能开发事项，新建、编辑描述及评论、勾选验收条件、修改分诊/标签/优先级、关联前置事项、关闭及重开，也可复制最新 Agent 上下文。宽窗口并排显示，窄窗口通过“返回 Issue 列表”往返。文件保存在开发根 `.scratch/<功能>/issues/`；格式与操作见[说明](../../docs/workbench/issues.md)，历史交付结果见开发仓库的[本机验收记录](../../local-evidence/docs/workbench/verification/issues/README.md)。这不是目标库业务 Project／Task 的入口。
 - **Skill 安装**：在「系统」中选择宿主，查看五项内置 Skill 的用途、入口与实际状态，按项或批量安装。明确归属的旧入口可修复，同名内容保留；移除前确认入口，安装后提供使用说明。详见[安装与使用](../../docs/workbench/agent-skill-setup.md)。
 - **Agent 规则**：明确选择包含主文件和场景目录的规则源，只读浏览正文及本机原文件，核对主入口与共用场景入口。未接入时可复制整理 Skill 的提示词，在 Agent 会话中形成并执行获准方案。个人正文由所选知识库或规则仓库管理，工作台不分发个人正文。详见[页面说明](../../docs/workbench/agent-rules.md)。
 - **通过 Agent 保存**：在以本库根目录为工作目录的会话中，新存内容使用 `tt-capture`，修改已有内容使用 `tt-update-note`。两者直接操作本库文件，不要求 Obsidian 启动、打开本库或启用工作台。Codex 与 Claude Code 的项目级入口、实际验证结果和限制见[技能接入说明](../../docs/workbench/agent-skill-setup.md)。其他 Agent 与远程环境分别验证后再声明支持。
@@ -55,20 +55,20 @@
 插件安装不注册 Skill、不改 FNS 或个人规则。恢复与同步排除见[工作台版本与更新](../../docs/workbench/updates.md)，源码构建与发布见[开发说明](../../docs/workbench/development.md)。
 
 Skill 入口在页面中单独管理，也可执行 `node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<知识库绝对路径>" --agent codex`；加 `--check` 只读核对。入口指向目标库内的安装资源，不依赖软件检出。修复和移除必须明确选择 Skill，未知来源内容不会自动覆盖或清理。
-旧 HTTP 接口连接信息存于 `<运行目录>/agent-bridge.json`，权限 0600，插件启动时重建，只监听本机随机端口。关闭库或退出应用时该文件可能遗留，文件存在不能作为服务在线的证据；后续维护项见[记录](../../.scratch/vault-rules-and-skills/backlog.md)。新 Agent CLI 不读取该文件。CLI 与工作台的文件锁、重试回执和失败恢复材料存于 `<运行目录>/vault-io/`，不要求有工作台进程；两种运行记录都不能复制到另一台使用，须保持 Git 忽略及本机 FNS 排除。新业务与存档路径中的 `tmp/` 排除须重新核验，不能用旧目录的[历史配置证据](../../docs/workbench/verification/root-numbering-migration.json)代替。
+旧 HTTP 接口连接信息存于 `<运行目录>/agent-bridge.json`，权限 0600，插件启动时重建，只监听本机随机端口。关闭库或退出应用时该文件可能遗留，文件存在不能作为服务在线的证据；后续维护项见[记录](../../.scratch/vault-rules-and-skills/backlog.md)。新 Agent CLI 不读取该文件。CLI 与工作台的文件锁、重试回执和失败恢复材料存于 `<运行目录>/vault-io/`，不要求有工作台进程；两种运行记录都不能复制到另一台使用，须保持 Git 忽略及本机 FNS 排除。新业务与存档路径中的 `tmp/` 排除须重新核验，不能用开发仓库中旧目录的[历史配置证据](../../local-evidence/docs/workbench/verification/root-numbering-migration.json)代替。
 
 FNS 设备配置按[本机普通配置与旧链接迁回规则](../../docs/agents/fns-device-config.md)维护；第二台电脑的插件、启用状态、运行条件及排除规则仍须单独核验。见[第二台电脑验收步骤](../../docs/workbench/second-computer.md)。
 
 ## 实现与验证入口
 
-用户通过 Agent 提交内容时，Skill 读取 `docs/rules/` 的适用主题，再由 `scripts/vault/write.mjs` 读取 JSON stdin，调用 `lib/vault/` 创建或修改业务 Markdown，核对真实文件后返回 JSON。此过程没有 HTTP 或 Obsidian 应用对象。旧 `agent-request.mjs` 仅转发到该文件命令。
+用户通过 Agent 提交内容时，Skill 先按[目标库规则读取](../../docs/agents/package-layout.md#目标库规则读取)沿该库实际入口读取适用主题，再核对软件工具契约。`scripts/vault/write.mjs` 读取 JSON stdin，调用 `lib/vault/` 创建或修改业务 Markdown，核对真实文件后返回 JSON。程序不解析 Markdown 规则，此过程没有 HTTP 或 Obsidian 应用对象。旧 `agent-request.mjs` 仅转发到该文件命令。
 
 用户通过工作台提交时，`main.js` 调度表单；收件箱、更新、附件和项目任务模块使用同一组文件、YAML、时间和路径模块。`shared.js` 在源码环境加载 `lib/vault/`，在安装环境加载复制的 `vault-lib/`。Obsidian 发现文件后，`note-reader.js` 读取业务文件与元数据，界面显示真实结果。浏览器剪藏仍通过 Obsidian URI 填充待确认表单；它的运行条件不限制独立 Agent。
 
-共同规则入口为 [docs/rules/](../../docs/rules/README.md)。本说明记录实现和使用方式，不维护第二份业务规范。
+软件规则入口为 [docs/rules/](../../docs/rules/README.md)，本说明记录实现和使用方式。目标库的业务规则由其自己的入口选择，各项目分别保留所需正文。
 
 ```sh
 npm test
 ```
 
-模块测试及真实 Obsidian、浏览器、系统剪贴板证据见[验收索引](../../docs/workbench/verification/README.md)。`scripts/workbench/verify-*.cjs` 在当前库的真实 Obsidian 上下文执行，会创建明确标注的验收笔记；不要在其他库执行。截图检查覆盖主窗口、独立窗口及不同宽度，不能用模块测试代替实际界面验收。
+模块测试及真实 Obsidian、浏览器、系统剪贴板的历史证据见开发仓库[本机验收索引](../../local-evidence/docs/workbench/verification/README.md)。`scripts/workbench/verify-*.cjs` 是特定历史实例的验证脚本，不作为新库初始化或本轮验收入口；新的合成验收使用开发仓库忽略的 `tmp/<用途>/` 隔离库，避免写入用户笔记。截图检查覆盖主窗口、独立窗口及不同宽度，不能用模块测试代替实际界面验收。

@@ -111,8 +111,10 @@ test('打开排除状态检查即读取全部目录，父目录覆盖和本机�
   const report = await inspectWorkbenchExclusions(service);
   assert.equal(report.status, 'configured'); assert.equal(report.configured, true);
   assert.ok(report.directories.every(item => item.excluded));
-  for (const directory of ['.obsidian/plugins/tannt-workbench', '.obsidian/plugins/tannt-workbench-recovery', '.obsidian/plugins/tt-workbench', '.obsidian/plugins/tt-workbench-recovery']) assert.ok(report.directories.some(item => item.path === directory));
-  assert.equal(report.directories.at(-1).path, '.obsidian/plugins/tt-workbench');
+  for (const directory of ['.obsidian/plugins/tt-workbench', '.obsidian/plugins/tt-workbench-recovery']) assert.ok(report.directories.some(item => item.path === directory));
+  assert.ok(!report.paths.some(item => item.path.includes('tannt-workbench')));
+  assert.ok(report.paths.some(item => item.path === '.obsidian/plugins/tt-workbench.install-lock' && item.kind === 'file'));
+  assert.ok(report.paths.some(item => item.path === '.obsidian/community-plugins.json' && item.kind === 'file'));
 });
 
 test('仅部分目录排除时列出缺项，白名单覆盖不能显示为已设置', async () => {
@@ -132,7 +134,7 @@ test('配置已保存但 FNS 未启用或仍加载旧规则时显示待生效，
   const service = { options: { configDir }, local: async () => ({ rules: normalize(config) }), runtime: { inspect: async () => ({ loaded: false }) } };
   const stopped = await inspectWorkbenchExclusions(service);
   assert.equal(stopped.configured, true); assert.equal(stopped.status, 'pending');
-  assert.equal(stopped.directories.at(-1).path, 'obsidian-settings/plugins/tt-workbench');
+  assert.ok(stopped.directories.some(item => item.path === 'obsidian-settings/plugins/tt-workbench'));
   service.runtime.inspect = async () => ({ loaded: true, settings: {} });
   assert.equal((await inspectWorkbenchExclusions(service)).status, 'pending');
   service.runtime.inspect = async () => ({ loaded: true, settings: config });

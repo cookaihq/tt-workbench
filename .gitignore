@@ -5,7 +5,6 @@
 /.agents/
 /.claude/
 /node_modules/
-/.scratch/
 /.system/
 .DS_Store
 *.log

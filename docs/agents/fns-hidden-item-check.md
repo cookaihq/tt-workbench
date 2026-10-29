@@ -50,8 +50,8 @@
 脚本适用于安装 **Node.js 18 或更新版本** 的 Windows、macOS、Linux Agent 环境，无第三方依赖。手机和平板上不预设 Node.js 可用；在那里由有文件访问能力的 Agent 按同一规则人工核对当前设备设置和目录，报告检查范围及遗漏，不能把当前 Windows 的结果当作其他设备的结果。
 
 ```text
-node "<软件根>/scripts/fns-hidden-audit.mjs" --vault "<库绝对路径>" check
-node "<软件根>/scripts/fns-hidden-audit.mjs" --vault "<库绝对路径>" check --json
+node "<软件根>/scripts/fns-hidden-audit.mjs" check --vault "<库绝对路径>"
+node "<软件根>/scripts/fns-hidden-audit.mjs" check --vault "<库绝对路径>" --json
 node --test scripts/fns-hidden-audit.test.mjs
 ```
 

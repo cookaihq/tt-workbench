@@ -29,8 +29,10 @@
 
 工作台及维护脚本仅写本机插件目录的普通配置，写前核对路径与原文，暂停 FNS，保存恢复材料，仅更新获准字段，恢复并验证实际加载。遗留链接须先走上述迁回，不能被普通设置写入隐式转换或沿链接修改。
 
-`config/fns-config/` 仍用于发布对象和可能尚未迁回的旧设备文件，保留现有 FNS 排除；本机运行数据仍排除 Git、FNS。不因迁回自动改变共享规则。界面、错误及日志不输出 Token 或完整配置。
+`config/fns-config/` 仍是 Git 发布对象内的路径；只有本机实际存在的旧设备目录才构成本机保护要求。新实例不为纯 Git 对象路径新增排除。已有旧规则保留，不因本机目录消失自动删除；本机运行数据仍排除 Git、FNS。目录与文件均相对于目标知识库根目录，各设备可使用不同绝对根及明确配置的运行位置。
+
+核对本机文件排除时使用工作台「FNS 配置同步 → 本机检查」，或按[独立程序说明](../workbench/fns-config-sync.md#独立程序入口)调用 `local-check`；该入口不依赖发布记录或 Git 远端。获准补齐后使用 `configure-local`，CLI 仍须先实际停用 FNS。完整发布流程与本机修复分开，安装不隐式补规则。界面、错误及日志不输出 Token 或完整配置。
 
 Windows 不再需要为 FNS 创建文件符号链接。身份识别、文件替换、暂停与恢复仍须在原生环境验收；macOS 通过不代表其他设备已完成。
 
-测试：`node --test scripts/fns/device-config.test.mjs scripts/fns/env-sync-support.test.mjs lib/fns/tests/sync.test.cjs`。旧方案历史见[原功能记录](../../.scratch/fns-device-config/spec.md)，本轮见[FNS 同步规格](../../.scratch/fns-config-sync/spec.md)。
+测试：`node --test scripts/fns/device-config.test.mjs scripts/fns/env-sync-support.test.mjs lib/fns/tests/sync.test.cjs lib/fns/tests/local-protection.test.cjs`。本轮规格与验收见[本机文件排除](../../.scratch/fns-local-protection/spec.md)；[历史实施记录](../../local-evidence/.scratch/fns-config-sync/verification/implementation.md)仅供本机回查，不随软件分发。

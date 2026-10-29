@@ -1,6 +1,6 @@
 # 百度网盘接入与本机授权
 
-适用于配置授权和执行远端操作。业务字段、账号选择及路径规则只维护在[共同规则](../../../docs/rules/cloud-files.md)。本机授权保存与检查使用 `scripts/cloud-files/accounts.mjs`；登录由 Agent 引导用户在百度官方网页完成。完整传输适配器尚未封装，已有实测方法不能当作当前账号已登录或完整流程已验收。
+适用于配置授权和执行远端操作。先按[目标库规则读取](../../../docs/agents/package-layout.md#目标库规则读取)取得目标库的账号选择、范围及路径规则；[软件网盘契约](../../../docs/rules/cloud-files.md)用于核对支持格式与能力，不替代目标库选择。本机授权保存与检查使用软件的 `scripts/cloud-files/accounts.mjs`；登录由 Agent 引导用户在百度官方网页完成。完整传输适配器尚未封装，已有实测方法不能当作当前账号已登录或完整流程已验收。
 
 ## 已有实测依据
 
@@ -22,7 +22,7 @@
 
 本机文件方式使用 `~/.config/tannt-cloud-files/accounts.json`，以 `account_ref` 为键保存多个档案。首次通过账号接口核验后才创建，目录权限为 `0700`，文件为 `0600`；不放进`config/cloud-storage-targets.jsonc`、替代文件或同步目录。也可由本机适配器使用系统凭据存储，保持相同的别名与账号绑定。当前脚本在 macOS 验证；Windows 的凭据权限需另行核验，不将 POSIX 权限位视为 Windows ACL 验收。
 
-默认账号和各账号父目录唯一维护于`config/cloud-storage-targets.jsonc`，直接通过 FNS 共享。共享目标不提供登录能力，也不复制其他设备的授权档案；账号 ID 继续由接口核验，并与本机档案及已有替代记录核对。
+默认账号和各账号父目录维护于目标库 `config/cloud-storage-targets.jsonc`，按该库选定的方式共享。共享目标不提供登录能力，也不复制其他设备的授权档案；账号 ID 继续由接口核验，并与本机档案及已有替代记录核对。
 
 授权表的 `schema` 为 `tannt-cloud-accounts/v1`，`accounts` 为按别名索引的对象。每项记录：
 

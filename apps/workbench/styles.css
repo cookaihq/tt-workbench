@@ -79,19 +79,12 @@
 .tt-workbench .tw-version { white-space: nowrap; font-size: 11px; padding: 6px 9px; color: var(--tw-muted); background: transparent; }
 .tt-workbench .tw-version[data-update=true] { background: var(--tw-soft); color: var(--tw-green); border-color: #a6b799; }
 .tw-updates-modal p { line-height: 1.8; font-size: 13px; }
-.tw-update-scope { margin-top: 16px; }
-.tw-update-scope summary { cursor: pointer; }
-.tw-update-scope-list { list-style: none; padding: 0; margin: 12px 0 18px; border: 1px solid var(--tw-line); border-radius: 8px; overflow: hidden; }
-.tw-update-scope-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 11px; border-bottom: 1px solid var(--tw-line); }
-.tw-update-scope-list li:last-child { border-bottom: 0; }
-.tw-update-scope-list code { min-width: 0; overflow-wrap: anywhere; white-space: normal; font-size: 11px; padding: 0; background: transparent; }
-.tw-update-directory-status { flex-shrink: 0; font-size: 11px; color: var(--tw-muted); }
-.tw-update-scope-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.tw-update-scope-status { font-size: 12px; color: var(--tw-muted); }
-.tw-update-scope-status[data-state=configured], .tw-update-directory-status[data-state=configured] { color: var(--tw-green); }
-.tw-update-scope-status[data-state=pending], .tw-update-scope-status[data-state=needs-setup] { color: #9e6c3c; }
-.tw-update-scope-status[data-state=unknown], .tw-update-scope-message[data-error=true] { color: #ad413b; }
-.tw-updates-modal .tw-update-scope-message { margin: 9px 0 0; font-size: 11px; color: var(--tw-muted); }
+.tw-fns-protection-list { list-style: none; padding: 0; margin: 12px 0 18px; border: 1px solid var(--tw-line); border-radius: 8px; overflow: hidden; }
+.tw-fns-protection-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 11px; border-bottom: 1px solid var(--tw-line); }
+.tw-fns-protection-list li:last-child { border-bottom: 0; }
+.tw-fns-protection-list code { min-width: 0; overflow-wrap: anywhere; white-space: normal; font-size: 11px; padding: 0; background: transparent; }
+.tw-fns-protection-item { flex-shrink: 0; font-size: 11px; color: var(--tw-muted); }
+.tw-fns-protection-item[data-state=configured] { color: var(--tw-green); }
 .tw-shell { display: grid; grid-template-columns: 206px minmax(0,1fr); min-height: 0; flex: 1; }
 .tw-nav { padding: 24px 14px 30px; background: #eeefe7; border-right: 1px solid var(--tw-line); display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 .tw-nav-label { font-size: 10px; letter-spacing: 1.3px; color: #93998f; padding: 0 12px; margin-bottom: 8px; }

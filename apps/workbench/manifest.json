@@ -1,7 +1,7 @@
 {
   "id": "tt-workbench",
   "name": "tt 工作台",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "minAppVersion": "1.8.7",
   "description": "管理笔记、项目、任务和开发 Issue，安装内置 Skill，查看所选 Agent 规则与本机入口。",
   "author": "tt",

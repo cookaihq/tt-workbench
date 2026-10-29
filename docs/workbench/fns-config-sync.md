@@ -6,13 +6,15 @@
 
 ## 使用流程
 
-1. 在每台设备先安装并完成 FNS 本机设置，准备当前库的 Git `origin` 及本机凭证助手。程序不会新建远端或替换凭据。
-2. 打开「设备检查」。`0.21.0` 起，插件目录里的普通配置直接可用。旧链接点击「迁回本机配置」：程序暂停 FNS、保存恢复材料，将完整配置原样迁回插件目录，核验后清理本机旧源并恢复原启用状态。身份、路径或内容冲突须先处理；不再创建符号链接。
-3. 在来源设备的 FNS 设置中修改四组规则，回到工作台点击「发布本机配置」。核对本机与远端差异，确认发布并推送。
+1. 在每台设备先安装并完成 FNS 本机设置。本机检查和补齐排除不要求配置 Git 远端。
+2. 打开「本机检查」，查看“本机文件排除”，按需点击「补齐本机排除」。它只修改本机排除规则，暂停 FNS、保存恢复材料、写入并核验加载；发布记录损坏也不影响此入口。旧链接先通过主页面「迁回本机配置」恢复为普通文件；缺少 FNS 时显示不适用。
+3. 需要跨设备发布时，准备当前知识库的 Git `origin` 及本机凭据。在来源设备的 FNS 设置中修改四组规则，回到工作台点击「发布本机配置」。核对本机与远端差异，确认发布并推送；程序不会新建远端或替换凭据。
 4. 在另一设备点击「检查更新」，按四组查看增删差异，选择「比较并应用」。本机有未发布修改时，确认会替换这些修改；取消可保留本机并准备发布。
 5. 查看写入与加载结果。已接收不表示已应用；已应用也不代表网络服务已完成文件传输。
 
 推送失败时可重试同一版本；远端争用时先检查更新，再选择是否放弃原待推送记录并重新发布。上次应用的恢复入口会核对当前内容，发现之后的改动则停止，保留恢复材料。
+
+本机清单包含实际运行目录、位置配置、工作台安装与恢复目录、安装锁和插件启用列表；只有发现旧安装或旧设备目录时才列出相应路径。已有上级目录排除可直接覆盖，补齐不扩大为排除整个 `.system/` 或 `.obsidian/`，也不删除已有旧规则。恢复材料保存在 `<运行目录>/workbench-code-sync/<标识>/`。首次补齐失败且恢复材料尚未获得排除保护时，FNS 保持停用，按错误中的位置核对后再启用。
 
 ## 每条规则的设置说明
 
@@ -36,15 +38,19 @@
 
 已知远端内容损坏、指纹不符或历史断裂时，最近收到的版本只供回查，不能继续应用旧缓存绕过异常。须维护者先修复传输分支，再重新「检查更新」。普通网络失败不清除已接收内容，也不把检查时间伪装成最新成功时间。
 
+旧发布缺少当前运行位置或安装文件的排除时，仍可接收和比较；页面说明“此版本不能直接应用到本机”，允许先调整本机规则再发布修正版。旧版留下的 `PROTECTED_SCOPE` 阻断记录在重新“检查更新”并通过内容与历史核验后解除。其他真实损坏继续阻断。Git 快照路径无需出现在当前工作目录；新实例不必为不存在的 `config/fns-config/` 新增排除，实际遗留目录仍受保护。
+
 ## 独立程序入口
 
-`node scripts/fns/sync-request.cjs` 从 stdin 读取 JSON，输出不含凭据的 JSON。读取检查不要求工作台运行。
+`node "<软件根>/scripts/fns/sync-request.cjs" --vault "<知识库绝对路径>"` 从 stdin 读取 JSON，输出不含凭据的 JSON。读取检查不要求工作台运行。
 
 ```json
-{"action":"check"}
+{"action":"local-check"}
 ```
 
-支持 `receive`、`preview`、`publish`、`apply`、`retry`、`discard`、`onboard`、`recover`。`preview` 使用 `kind: "publish"` 或 `kind: "apply"`，发布和应用必须原样传回对应 `plan`。`discard` 传待推送的 `publicationId`，`recover` 传上次操作的 `operationId`。自定义 Obsidian 配置目录通过 `configDir` 传入。`onboard` 仅迁回已知本机旧链接；普通文件无需接入，不会外移或建链。
+`local-check` 只检查本机配置和排除，`configure-local` 明确补齐本机排除；后者须先停用 FNS 并传 `fnsStopped: true`。两者都不读取发布状态、不连接远端；实例已有 Git 时补齐仍要求恢复目录被忽略。
+
+`check` 读取发布状态；另支持 `receive`、`preview`、`publish`、`apply`、`retry`、`discard`、`onboard`、`recover`。`preview` 使用 `kind: "publish"` 或 `kind: "apply"`，发布和应用必须原样传回对应 `plan`。`discard` 传待推送的 `publicationId`，`recover` 传上次操作的 `operationId`。自定义 Obsidian 配置目录通过 `configDir` 传入。`onboard` 仅迁回已知本机旧链接；普通文件无需接入，不会外移或建链。
 
 维护说明先调用 `check`，使用返回的 `notes.expected` 作为原样依据，再调用 `save-notes`，传 `expected` 和完整 `notes` 数组；清空数组表示清除本机规则的全部说明。示例条目：`{"field":"configSyncOtherDirs","pattern":".scratch","caseSensitive":false,"reason":"填写实际设置原因"}`。缺省说明可从 `notes.entries` 读取后局部修改，不能省略其他条目造成误删。保存说明不需要暂停 FNS，也不会发布；发布使用通常的预览与确认入口。
 
@@ -56,4 +62,4 @@
 - 白名单校验需证明不会覆盖设备配置与恢复目录。无法证明范围的复杂表达式会阻断操作，提示改用明确目录；不会自动删改规则。
 - 没有记录时显示「内容一致」；实际 FNS 未加载或加载值不同，会保留「已写入、待加载核验」。界面不监控其他电脑。
 - Windows 不再要求为 FNS 创建符号链接；身份、文件替换与 FNS 实际加载仍须原生验证。macOS 夹具不能替代 Windows 实机验证。
-- 实施与验收状态见[规格](../../.scratch/fns-config-sync/spec.md)及[实现验收](../../local-evidence/.scratch/fns-config-sync/verification/implementation.md)。
+- 本轮规格与验证见[本机文件排除](../../.scratch/fns-local-protection/spec.md)。历史验收见[原实现验收](../../local-evidence/.scratch/fns-config-sync/verification/implementation.md)，属于迁入的本机证据，不随软件分发。

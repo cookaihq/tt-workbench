@@ -58,6 +58,31 @@ test('帮助和只读检查不安装；Skill 注册独立执行并拒绝覆盖�
   assert.equal(run(installer, ['--vault', root, '--agent', 'codex'], undefined, root).status, 1);
   assert.equal(await fs.readFile(path.join(entry, 'keep.txt'), 'utf8'), 'mine');
 });
+test('安装和升级保留目标库自有入口、规则与概念，软件规则只留在插件包中', async t => {
+  const root = await fixture(t);
+  const ownFiles = new Map([
+    ['AGENTS.md', '# 目标库\n\n保存前读取 [本库规则](policy/capture.md)。\n'],
+    ['CLAUDE.md', '@AGENTS.md\n'],
+    ['policy/capture.md', '# 本库保存规则\n\n内容按本库选择存放。\n'],
+    ['docs/rules/writing-and-changes.md', '# 本库写入规则\n\n保留独立正文。\n'],
+    ['GLOSSARY.md', '# 本库概念\n'],
+  ]);
+  for (const [name, content] of ownFiles) {
+    await fs.mkdir(path.dirname(path.join(root, name)), { recursive: true });
+    await fs.writeFile(path.join(root, name), content);
+  }
+  const first = await packages.collectPackage(source);
+  const initial = await packages.installPackage(first, { vault: root });
+  const next = { files: new Map(first.files), release: { ...first.release, files: { ...first.release.files } } };
+  const rule = 'docs/rules/content-and-sources.md';
+  next.files.set(rule, Buffer.from('# 软件规则更新\n'));
+  next.release.files[rule] = packages.hash(next.files.get(rule));
+  await packages.installPackage(next, { vault: root });
+  for (const [name, content] of ownFiles) assert.equal(await fs.readFile(path.join(root, name), 'utf8'), content, name);
+  assert.equal(await fs.readFile(path.join(initial.target, rule), 'utf8'), '# 软件规则更新\n');
+  assert.deepEqual((await fs.readdir(root)).sort(), ['.obsidian', 'AGENTS.md', 'CLAUDE.md', 'GLOSSARY.md', 'docs', 'policy'].sort());
+  assert.deepEqual(await fs.readdir(path.join(root, 'docs/rules')), ['writing-and-changes.md']);
+});
 test('安装期间出现外部改动时拒绝替换，恢复并发编辑结果', async t => {
   const root = await fixture(t), first = await packages.collectPackage(source);
   const initial = await packages.installPackage(first, { vault: root });

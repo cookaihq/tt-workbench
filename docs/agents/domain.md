@@ -7,6 +7,8 @@
 - `GLOSSARY.md`：领域术语及其定义。
 - `docs/adr/`：长期架构和组织方式的决策记录。
 
+这里维护软件所需概念；目标库在自己的项目内维护所需概念。两边共同含义变化时按[工作台变更联动](workbench-change-coordination.md)检查对应定义，项目内部保持一处正文，跨项目允许各自独立使用。业务 Project／Task 与软件开发 Issue 分别遵守所属规则。
+
 ## Before exploring, read these
 
 先阅读根目录的 `GLOSSARY.md`，再阅读与当前任务有关的 ADR。

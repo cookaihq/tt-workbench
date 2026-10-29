@@ -1,4 +1,5 @@
 'use strict';
+const { FnsLocalUI } = require('./fns-local-ui.js');
 const FIELDS = [
   ['configSyncOtherDirs', '增加目录同步', '额外纳入同步的库内目录'],
   ['syncExcludeFolders', '排除目录', '不参与同步的路径与目录'],
@@ -6,7 +7,7 @@ const FIELDS = [
   ['syncExcludeWhitelist', '排除白名单', '优先于排除规则的例外']
 ];
 const STATUS = { 'no-publication': '尚无权威版本', 'update-available': '有版本可应用', equal: '规则内容一致',
-  ready: '本机配置正常', 'authority-invalid': '远端发布异常，应用已阻止',
+  ready: '本机配置正常', 'authority-invalid': '远端发布异常，应用已阻止', 'authority-recheck': '旧校验记录待重新检查',
   applied: '本机已应用并核验', written: '已写入，待加载核验', 'local-changes': '本机有未发布修改', pending: '发布等待推送',
   'needs-migration': '旧配置待迁回', 'missing-config': '请先配置 FNS', 'foreign-link': '配置归属需核对', 'broken-link': '本机链接已断开', conflict: '配置冲突' };
 const key = r => JSON.stringify(r);
@@ -53,14 +54,17 @@ class FnsUI {
     const p = this.panel, report = this.report;
     p.empty(); p.setAttribute('aria-busy', String(this.busy));
     const actions = p.createDiv({ cls: 'tw-fns-actions' });
-    this.button(actions, '设备检查', () => this.checkDialog());
+    this.button(actions, '本机检查', () => this.checkDialog());
     this.button(actions, '检查更新', () => this.run(() => this.service.checkUpdates()));
     const publish = this.button(actions, '发布本机配置', () => this.prepare('publish'));
     publish.disabled ||= report?.device?.status !== 'ready' || Boolean(report?.pending);
     const notes = this.button(actions, this.notesEditorDraft ? '继续编辑说明' : '编辑说明', () => this.notesDialog());
     notes.disabled ||= report?.device?.status !== 'ready' || Boolean(report?.pending);
     if (this.error) p.createDiv({ text: this.error, cls: 'tw-fns-alert', attr: { role: 'alert' } });
-    if (report?.blocked) p.createDiv({ text: '已发现远端发布内容或历史异常。最近收到的版本仅供回查；请修复发布并重新检查更新。', cls: 'tw-fns-alert', attr: { role: 'alert' } });
+    if (report?.blocked) p.createDiv({ text: report.blocked.code === 'PROTECTED_SCOPE'
+      ? '旧版本留下了目录排除校验记录。请点击“检查更新”重新核验发布；本机排除可在“本机检查”中处理。'
+      : '已发现远端发布内容或历史异常。最近收到的版本仅供回查；请修复发布并重新检查更新。', cls: 'tw-fns-alert', attr: { role: 'alert' } });
+    if (report?.application?.message && !report.blocked) p.createDiv({ text: report.application.message + ' 可调整本机规则后发布新版本。', cls: 'tw-fns-alert', attr: { role: 'alert' } });
     if (this.message) p.createDiv({ text: this.message, cls: 'tw-fns-message', attr: { role: 'status', 'aria-live': 'polite' } });
     if (report?.notes?.draft) p.createDiv({ text: report.notes.conflict
       ? '说明草稿基于较早版本。请编辑说明，核对当前版本后重新保存，再发布。'
@@ -111,7 +115,7 @@ class FnsUI {
     if (report.pending) {
       this.button(footer, `重试推送 v${report.pending.version}`, () => this.run(() => this.service.retryPublish()), true);
       this.button(footer, '放弃待推送记录', () => this.confirmDiscard());
-    } else if (report.publication) { const apply = this.button(footer, '比较并应用', () => this.prepare('apply'), true); apply.disabled ||= Boolean(report.blocked); }
+    } else if (report.publication) { const apply = this.button(footer, '比较并应用', () => this.prepare('apply'), true); apply.disabled ||= Boolean(report.blocked) || report.application?.allowed === false; }
     else this.button(footer, '发布本机配置', () => this.prepare('publish'), true);
     p.createEl('p', { text: '同步范围为以上四组。应用会保存恢复记录，并保留本机账号及其他设备设置。', cls: 'tw-fns-caption' });
     if (report.recovery) {
@@ -253,15 +257,9 @@ class FnsUI {
       }
     }, action === 'publish' ? '确认发布并推送' : '确认应用', () => action === 'publish' ? this.service.publish(plan) : this.service.apply(plan, { replaceLocal: plan.localChanged }));
   }
-  async checkDialog() {
-    await this.refresh();
-    this.dialog('当前设备检查', dialog => {
-      dialog.createEl('p', { text: this.error || `配置状态：${STATUS[this.report?.device?.status] || this.report?.device?.status}` });
-      if (this.report?.device?.deviceId) dialog.createEl('p', { text: '设备：' + this.report.device.deviceId });
-      if (this.report?.device?.source) dialog.createEl('p', { text: '本机配置：' + this.report.device.source });
-      for (const warning of this.report?.runtime?.warnings || []) dialog.createEl('p', { text: warning, cls: 'tw-warning' });
-      dialog.createEl('p', { text: '“检查更新”会核验 Git 远端；设备检查本身不代表远端可达或另一设备已应用。', cls: 'tw-fns-caption' });
-    });
+  checkDialog() {
+    this.localUI ||= new FnsLocalUI(this.view, () => this.refresh());
+    this.localUI.open();
   }
   confirmOnboard() { this.dialog('迁回本机配置', dialog => dialog.createEl('p', { text: '暂停 FNS，将旧链接指向的完整配置迁回插件目录，保留全部设置并清理本机旧源文件，再恢复原启用状态。' }), '确认迁回', () => this.service.onboard()); }
   confirmDiscard() {
@@ -272,6 +270,6 @@ class FnsUI {
     const id = this.report.recovery.split('/').at(-1);
     this.dialog('恢复上次应用前的规则', dialog => dialog.createEl('p', { text: '仅当配置自上次操作后没有变化时恢复；若发现后来修改，将停止并保留现场。' }), '确认恢复', () => this.service.recover(id));
   }
-  dispose() { ++this.generation; for (const d of this.view.contentEl.querySelectorAll('.tw-fns-modal')) d.remove(); }
+  dispose() { ++this.generation; this.localUI?.dispose(); for (const d of this.view.contentEl.querySelectorAll('.tw-fns-modal')) d.remove(); }
 }
 module.exports = { FnsUI };
