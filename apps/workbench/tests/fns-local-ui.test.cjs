@@ -70,3 +70,97 @@ test('关闭本机弹窗后异步检查结果不重新创建界面', async () =>
   local.close(); resolve({}); await pending; await new Promise(done => setImmediate(done));
   assert.equal(local.body, null); assert.equal(local.dialog, null);
 });
+
+const emptyRules = () => ({ configSyncOtherDirs: [], syncExcludeFolders: [], syncExcludeExtensions: [], syncExcludeWhitelist: [] });
+function applicationReport() {
+  return {
+    device: { status: 'ready', deviceId: 'test-device' }, local: { rules: emptyRules() }, status: 'update-available',
+    publication: { version: 2, sourceDevice: 'other-device', publishedAt: '2026-10-29T00:00:00Z', rules: emptyRules() },
+    application: { allowed: false, code: 'PROTECTED_SCOPE', message: '此版本不能直接应用到本机：必须保留 .system/.workbench-runtime/ 的明确目录排除。' }
+  };
+}
+
+test('提示条直接补齐本机排除，防止重复点击；完成后仅预览修正版，不自动发布或应用', async () => {
+  let configured = false, writes = 0, previews = 0, publications = 0, applications = 0, finish;
+  const pending = new Promise(resolve => { finish = resolve; });
+  const ui = new FnsUI(view({
+    fns: {
+      inspect: async () => applicationReport(),
+      preview: async kind => {
+        assert.equal(kind, 'publish'); previews++;
+        return { version: 3, diff: Object.fromEntries(Object.keys(emptyRules()).map(field => [field, { add: [], remove: [] }])) };
+      },
+      publish: async () => { publications++; }, apply: async () => { applications++; }
+    },
+    inspectLocalProtection: async () => ({ configured, canConfigure: true, status: configured ? 'configured' : 'needs-setup' }),
+    configureLocalProtection: async () => { writes++; await pending; configured = true; return { message: '本机排除已保存并加载。' }; }
+  }));
+  ui.build(new Element('div')); await ui.refresh();
+  const configure = ui.panel.find('补齐本机排除');
+  assert.equal(configure.disabled, false);
+  const operation = configure.listeners.click();
+  assert.equal(ui.panel.find('补齐本机排除').disabled, true);
+  await configure.listeners.click(); assert.equal(writes, 1);
+  finish(); await operation;
+  assert.equal(ui.panel.find('补齐本机排除'), undefined);
+  assert.ok(ui.panel.textContent.includes('本机排除已齐全并生效'));
+  assert.ok(ui.panel.textContent.includes('此版本暂不可应用'));
+  assert.ok(!ui.panel.textContent.includes('有版本可应用'));
+  assert.equal(ui.panel.find('比较并应用').disabled, true);
+  assert.equal(previews, 0); assert.equal(publications, 0); assert.equal(applications, 0);
+  await ui.panel.find('比较并发布').listeners.click();
+  assert.equal(previews, 1); assert.equal(publications, 0);
+  assert.ok(ui.view.contentEl.find('确认发布并推送'));
+  ui.view.contentEl.find('取消').listeners.click();
+  assert.equal(publications, 0);
+});
+
+test('补齐失败显示原因、恢复按钮并保留不可应用状态', async () => {
+  const ui = new FnsUI(view({
+    fns: { inspect: async () => applicationReport() },
+    inspectLocalProtection: async () => ({ configured: false, canConfigure: true, status: 'needs-setup' }),
+    configureLocalProtection: async () => { throw Error('白名单可能覆盖恢复目录；请收窄为明确的其他目录。'); }
+  }));
+  ui.build(new Element('div')); await ui.refresh();
+  await ui.panel.find('补齐本机排除').listeners.click();
+  assert.ok(ui.panel.textContent.includes('白名单可能覆盖恢复目录'));
+  assert.equal(ui.panel.find('补齐本机排除').disabled, false);
+  assert.equal(ui.panel.find('比较并发布'), undefined);
+  assert.equal(ui.panel.find('比较并应用').disabled, true);
+  assert.equal(ui.message, '');
+});
+
+test('本机已保存但未加载时明确显示待核验，待推送记录阻止新发布', async () => {
+  const report = applicationReport();
+  const ui = new FnsUI(view({
+    fns: { inspect: async () => structuredClone(report) },
+    inspectLocalProtection: async () => ({ configured: true, canConfigure: true, status: 'pending' })
+  }));
+  ui.build(new Element('div')); await ui.refresh();
+  assert.ok(ui.panel.textContent.includes('FNS 加载仍待核验'));
+  assert.ok(!ui.panel.textContent.includes('已齐全并生效'));
+  assert.equal(ui.panel.find('补齐本机排除'), undefined);
+  assert.equal(ui.panel.find('比较并发布').disabled, false);
+  report.pending = { version: 3 };
+  await ui.refresh();
+  assert.equal(ui.panel.find('比较并发布').disabled, true);
+  assert.ok(ui.panel.textContent.includes('请先处理页面下方的待推送记录'));
+});
+
+test('本机检查不可用时保留版本比较，其他发布异常不提供补齐快捷操作', async () => {
+  const report = applicationReport(); let localChecks = 0;
+  const ui = new FnsUI(view({
+    fns: { inspect: async () => structuredClone(report) },
+    inspectLocalProtection: async () => { localChecks++; throw Error('配置暂不可读'); }
+  }));
+  ui.build(new Element('div')); await ui.refresh();
+  assert.ok(ui.panel.find('查看本机检查'));
+  assert.ok(ui.panel.find('权威版本 v2'));
+  assert.equal(ui.panel.find('补齐本机排除'), undefined);
+  report.blocked = { code: 'INVALID_PUBLICATION' };
+  await ui.refresh();
+  assert.equal(localChecks, 1);
+  assert.equal(ui.panel.find('补齐本机排除'), undefined);
+  assert.equal(ui.panel.find('比较并发布'), undefined);
+  assert.equal(ui.panel.find('比较并应用').disabled, true);
+});

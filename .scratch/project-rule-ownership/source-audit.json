@@ -1,0 +1,146 @@
+{
+  "checkedAt": "2026-10-29T10:31:15.454Z",
+  "files": {
+    "AGENTS.md": "cdc2ce8b3d30328ce14204cddd9389091a649b0db2f5efffd32a8a0e5d74648d",
+    "GLOSSARY.md": "307ae0b08fabfa5e1a4ee28b082fad3bd58af976c8c3a65f3ace6233f5922000",
+    "README.md": "08fa4c64fbc0a57b5dda9e153a7ddc0d5f651b8cfa35326dcdf86b46766ea522",
+    "apps/workbench/README.md": "2b20c50e7b108c786a0f08d715e560a1532ef8945c639b99b949bae1aecbf4c9",
+    "apps/workbench/tests/package.test.cjs": "46e95a4d127791683ce516998cc2aef96dc0e35025426af43bc110cca68a733c",
+    "docs/adr/0001-shared-rules-and-scenario-skills.md": "a1e06f56e9af7702408028ef24d005961d825869bcc9ed19127777eeb15220fd",
+    "docs/adr/0003-cloud-file-path-mapping.md": "cdc207dc3196bfde039d8f4701396646931bcd8022f1b671314e9b1ea011af11",
+    "docs/adr/0005-independent-workbench-repository.md": "e03305460d1b7d67c5501fd21ab2091bf6a4bb5018bee145d24792b71c603d02",
+    "docs/agents/agent-config-sync.md": "8e8254451186c5b299c3e4698981f7d895fc5ed18976335b854d37b81275fd89",
+    "docs/agents/domain.md": "54d6d13e251889ce07f5434e894ab5121e9291d6475d441e5f88c67fab6b0175",
+    "docs/agents/fns-cloud-targets-sync.md": "d8db790a8a49c514ac4661558203e825d57b037d898e2e6b80b6f29d4cfa1366",
+    "docs/agents/fns-hidden-item-check.md": "71f6c612120134ab51d8a76680882fce39f7c8712cd74909ca4824210d8944cc",
+    "docs/agents/package-layout.md": "e9c2ec4c3962e318a41f7670a44b7b8bffa27a596855b5c4aa908ac7c64de1b1",
+    "docs/agents/vault-file-operations.md": "a53f6590a841ab5432f7474b37787fb42390402f402b7a583ad1fd24dd59c4ff",
+    "docs/agents/workbench-change-coordination.md": "06f727fc5df209051fdc2a8743c5bbfa599945e5711e14ee4a203b1bea741e5d",
+    "docs/rules/README.md": "60d518077b22f98a021524e9b171a6e0d60014d7129f0cca76be581ca89cfee7",
+    "docs/rules/attachments.md": "ca4cbb7100568d62884fa17edfcf6248cd0483933ca4b52b9abd65d2d3ba121c",
+    "docs/rules/cloud-files.md": "0290dc64e0fa49a601d2c51d14eede66a6fac2b4b4fefd839b774b841697ca13",
+    "docs/rules/content-and-sources.md": "5ccb3339339a095adabfd3b9efe54883303e01d271364b1c20eb423ba4ba8f52",
+    "docs/rules/projects-and-tasks.md": "8bee87b5f44b09e32758ae5133168eb3c60023fc8317fe598fd5d9bd476fee4e",
+    "docs/rules/scope-and-directories.md": "b2822237247ab25a00ce8718e4ca7b9d3e1bb84853ff4b2dffccab3efda4d1ef",
+    "docs/rules/writing-and-changes.md": "0580f9da4ed3433740894a4eb3e396819d70adb89a0708c65b9113f484e7e17d",
+    "docs/workbench/agent-rules.md": "3fa349fe495fd23dfc3f8509767700a5cca6548a4b65751368ab18d6f25d96d5",
+    "docs/workbench/agent-skill-setup.md": "febd2767dfa77d620023b0bc69558661027c04042fa363f1c8b606648d70f1a5",
+    "docs/workbench/installation.md": "2039331574575d66e663e549ec6feee41dcc14e1334da31eb6de962fdd6ba31d",
+    "docs/workbench/updates.md": "da3ddef6bb11bbf43e6a15fdaffde74c7ac07e75cd4da1fd176b0de5ef760b42",
+    "scripts/cloud-files/config.mjs": "fde928f271175a945806b6e34b2cd046061f085339e568bec6fc1f3ca0274fa6",
+    "scripts/cloud-files/config.test.mjs": "9554e0ebd28246ccb2ee51d87c902d07fc68d93d3d4d33175e5f4a1630ea0a60",
+    "scripts/vault/write.mjs": "7514437d617e9adf3c942cd7059a55386918b2744afd94b9c5a7e29e4e6f56ab",
+    "skills/tt-capture/SKILL.md": "d0cd96a4903adfc314214bb3d8b31f97998d0eb2d117e388aa9b3b21401e1778",
+    "skills/tt-update-note/SKILL.md": "fc426ccd2aea0287f1de29b5efcaf646f726857216a28554b03e6d044a94d27d",
+    "skills/tt-cloud-files/SKILL.md": "48d3c50d1d3a0b35f513528edc92796824c1f763f02ca84d55104459297e1ab1",
+    "skills/tt-cloud-files/settings.yaml": "049b4a55c4ff4621251faa5ceae1841568c22edd2d4dfd873b6d11e9f2808afb",
+    "skills/tt-cloud-files/references/baidu-access.md": "7bbef257711b2d88fda38768247145a4a7d78beb9655b186c10d983f83f774b9",
+    "skills/tt-sync-agent-config/SKILL.md": "d5f4b1288781b2e9e8b9706ee67fc7310b91243d7891f4f3c24f5253c6072089",
+    "skills/tt-organize-agent-rules/SKILL.md": "bc6fcce222252958eff5a9124982628ea499022bba8d5fb7009ffb68371988d3"
+  },
+  "links": 191,
+  "missingCurrent": [],
+  "historicalUnavailable": [
+    {
+      "file": "apps/workbench/README.md",
+      "href": "../../.scratch/vault-rules-and-skills/backlog.md"
+    },
+    {
+      "file": "docs/adr/0001-shared-rules-and-scenario-skills.md",
+      "href": "../../.scratch/vault-rules-and-skills/rule-migration.md"
+    },
+    {
+      "file": "docs/adr/0001-shared-rules-and-scenario-skills.md",
+      "href": "../../.scratch/vault-rules-and-skills/verification/README.md"
+    },
+    {
+      "file": "docs/adr/0003-cloud-file-path-mapping.md",
+      "href": "../../.scratch/cloud-managed-files/spec.md"
+    },
+    {
+      "file": "docs/adr/0003-cloud-file-path-mapping.md",
+      "href": "../../.scratch/jsonc-config/spec.md"
+    },
+    {
+      "file": "docs/adr/0005-independent-workbench-repository.md",
+      "href": "../../.scratch/workbench-skill-installation/spec.md"
+    },
+    {
+      "file": "docs/adr/0005-independent-workbench-repository.md",
+      "href": "../../.scratch/workbench-repository-extraction/spec.md"
+    },
+    {
+      "file": "docs/adr/0005-independent-workbench-repository.md",
+      "href": "../../.scratch/workbench-skill-installation/spec.md"
+    },
+    {
+      "file": "docs/agents/agent-config-sync.md",
+      "href": "../../.scratch/device-setup/spec.md"
+    },
+    {
+      "file": "docs/agents/vault-file-operations.md",
+      "href": "../../.scratch/information-architecture-workflow/spec.md"
+    },
+    {
+      "file": "docs/agents/vault-file-operations.md",
+      "href": "../../.scratch/information-architecture-workflow/spec.md"
+    },
+    {
+      "file": "docs/rules/cloud-files.md",
+      "href": "../../.scratch/cloud-managed-files/spec.md"
+    },
+    {
+      "file": "docs/rules/content-and-sources.md",
+      "href": "../../.scratch/information-architecture-workflow/spec.md"
+    },
+    {
+      "file": "docs/rules/scope-and-directories.md",
+      "href": "../../.scratch/information-architecture-workflow/spec.md"
+    },
+    {
+      "file": "docs/rules/scope-and-directories.md",
+      "href": "../../.scratch/information-architecture-workflow/spec.md"
+    },
+    {
+      "file": "skills/tt-cloud-files/references/baidu-access.md",
+      "href": "../../../.scratch/cloud-managed-files/verification/authorization-20261025.json"
+    }
+  ],
+  "fixedReleaseSha256": "19f50add60bb72c3b79a279aa62093adcf421abd379ae0671cdd8caecc51ee95",
+  "fixedPackageFiles": {
+    "GLOSSARY.md": "307ae0b08fabfa5e1a4ee28b082fad3bd58af976c8c3a65f3ace6233f5922000",
+    "README.md": "08fa4c64fbc0a57b5dda9e153a7ddc0d5f651b8cfa35326dcdf86b46766ea522",
+    "apps/workbench/README.md": "2b20c50e7b108c786a0f08d715e560a1532ef8945c639b99b949bae1aecbf4c9",
+    "docs/adr/0001-shared-rules-and-scenario-skills.md": "a1e06f56e9af7702408028ef24d005961d825869bcc9ed19127777eeb15220fd",
+    "docs/adr/0003-cloud-file-path-mapping.md": "cdc207dc3196bfde039d8f4701396646931bcd8022f1b671314e9b1ea011af11",
+    "docs/adr/0005-independent-workbench-repository.md": "e03305460d1b7d67c5501fd21ab2091bf6a4bb5018bee145d24792b71c603d02",
+    "docs/agents/agent-config-sync.md": "8e8254451186c5b299c3e4698981f7d895fc5ed18976335b854d37b81275fd89",
+    "docs/agents/domain.md": "54d6d13e251889ce07f5434e894ab5121e9291d6475d441e5f88c67fab6b0175",
+    "docs/agents/fns-cloud-targets-sync.md": "d8db790a8a49c514ac4661558203e825d57b037d898e2e6b80b6f29d4cfa1366",
+    "docs/agents/fns-hidden-item-check.md": "71f6c612120134ab51d8a76680882fce39f7c8712cd74909ca4824210d8944cc",
+    "docs/agents/package-layout.md": "e9c2ec4c3962e318a41f7670a44b7b8bffa27a596855b5c4aa908ac7c64de1b1",
+    "docs/agents/vault-file-operations.md": "a53f6590a841ab5432f7474b37787fb42390402f402b7a583ad1fd24dd59c4ff",
+    "docs/agents/workbench-change-coordination.md": "06f727fc5df209051fdc2a8743c5bbfa599945e5711e14ee4a203b1bea741e5d",
+    "docs/rules/README.md": "60d518077b22f98a021524e9b171a6e0d60014d7129f0cca76be581ca89cfee7",
+    "docs/rules/attachments.md": "ca4cbb7100568d62884fa17edfcf6248cd0483933ca4b52b9abd65d2d3ba121c",
+    "docs/rules/cloud-files.md": "0290dc64e0fa49a601d2c51d14eede66a6fac2b4b4fefd839b774b841697ca13",
+    "docs/rules/content-and-sources.md": "5ccb3339339a095adabfd3b9efe54883303e01d271364b1c20eb423ba4ba8f52",
+    "docs/rules/projects-and-tasks.md": "8bee87b5f44b09e32758ae5133168eb3c60023fc8317fe598fd5d9bd476fee4e",
+    "docs/rules/scope-and-directories.md": "b2822237247ab25a00ce8718e4ca7b9d3e1bb84853ff4b2dffccab3efda4d1ef",
+    "docs/rules/writing-and-changes.md": "0580f9da4ed3433740894a4eb3e396819d70adb89a0708c65b9113f484e7e17d",
+    "docs/workbench/agent-rules.md": "3fa349fe495fd23dfc3f8509767700a5cca6548a4b65751368ab18d6f25d96d5",
+    "docs/workbench/agent-skill-setup.md": "febd2767dfa77d620023b0bc69558661027c04042fa363f1c8b606648d70f1a5",
+    "docs/workbench/installation.md": "2039331574575d66e663e549ec6feee41dcc14e1334da31eb6de962fdd6ba31d",
+    "docs/workbench/updates.md": "da3ddef6bb11bbf43e6a15fdaffde74c7ac07e75cd4da1fd176b0de5ef760b42",
+    "scripts/cloud-files/config.mjs": "fde928f271175a945806b6e34b2cd046061f085339e568bec6fc1f3ca0274fa6",
+    "scripts/vault/write.mjs": "7514437d617e9adf3c942cd7059a55386918b2744afd94b9c5a7e29e4e6f56ab",
+    "skills/tt-capture/SKILL.md": "d0cd96a4903adfc314214bb3d8b31f97998d0eb2d117e388aa9b3b21401e1778",
+    "skills/tt-update-note/SKILL.md": "fc426ccd2aea0287f1de29b5efcaf646f726857216a28554b03e6d044a94d27d",
+    "skills/tt-cloud-files/SKILL.md": "48d3c50d1d3a0b35f513528edc92796824c1f763f02ca84d55104459297e1ab1",
+    "skills/tt-cloud-files/settings.yaml": "049b4a55c4ff4621251faa5ceae1841568c22edd2d4dfd873b6d11e9f2808afb",
+    "skills/tt-cloud-files/references/baidu-access.md": "7bbef257711b2d88fda38768247145a4a7d78beb9655b186c10d983f83f774b9",
+    "skills/tt-sync-agent-config/SKILL.md": "d5f4b1288781b2e9e8b9706ee67fc7310b91243d7891f4f3c24f5253c6072089",
+    "skills/tt-organize-agent-rules/SKILL.md": "bc6fcce222252958eff5a9124982628ea499022bba8d5fb7009ffb68371988d3"
+  },
+  "basis": "files records the reviewed source at checkedAt; fixedPackageFiles and release.json identify this delivered build."
+}

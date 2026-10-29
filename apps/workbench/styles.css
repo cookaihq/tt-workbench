@@ -54,6 +54,11 @@
 .tw-fns-footer small { font-size: 11px; color: var(--tw-muted); }
 .tw-fns-alert,.tw-fns-message { padding: 12px 16px; border-radius: 8px; margin: 12px 0; overflow-wrap: anywhere; font-size: 13px; }
 .tw-fns-alert { background: #f8ece7; color: #9c4838; }
+.tw-fns-alert-action { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tw-fns-alert-content { flex: 1 1 320px; min-width: 0; }
+.tw-fns-alert-content details { margin-top: 4px; font-size: 12px; }
+.tw-fns-alert-content summary { cursor: pointer; }
+.tt-workbench .tw-fns-alert-action > button { flex: 0 0 auto; padding: 5px 10px; }
 .tw-fns-message { background: var(--tw-soft); color: var(--tw-green); }
 .tw-fns-empty { padding: 24px 0; color: var(--tw-muted); }
 .tt-workbench .tw-fns-modal { width: min(680px,90vw); max-height: 85vh; overflow-y: auto; padding: 28px; }

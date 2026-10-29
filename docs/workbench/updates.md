@@ -29,6 +29,8 @@
 
 ## 发布
 
+开始前读取并遵守[发布工作区与收尾](../agents/git.md#发布工作区与收尾)，发布验收后按该规则完成临时资源清理。
+
 1. 更新源码及 `package.json`、`apps/workbench/manifest.json` 的同一版本。
 2. 执行 `npm test`、`npm run build`，验证完整包在隔离库可安装及受影响功能。
 3. 在明确的发布授权内创建 GitHub Release，同时上传 `dist/tt-workbench.zip`、`dist/release.json` 和 `dist/tt-workbench.bundle.json.gz`。ZIP 用于用户首次安装，更新器继续读取后两个附件；它们必须来自同一次构建。`dist/plugin/` 是展开的完整安装目录，不能只取三个 Obsidian 常见入口文件。详细产物及验收要求见[开发说明](development.md)。

@@ -5,7 +5,7 @@ const path = require('node:path');
 const { IssueStore } = require('../issues.js');
 
 async function fixture() {
-  const base = path.resolve(__dirname, '../../../.scratch/workbench-issues/tmp/module-tests');
+  const base = path.resolve(__dirname, '../../../tmp/workbench-issues/module-tests');
   await fs.mkdir(base, { recursive: true });
   const root = await fs.mkdtemp(path.join(base, 'run-'));
   const write = async (relative, content) => {
