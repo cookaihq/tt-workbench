@@ -68,6 +68,36 @@ Obsidian 配置目录：.obsidian（如有自定义，请替换）
 完成后报告版本、安装位置与校验结果，并指导我启用和打开工作台。
 ```
 
+### 方式三：执行命令安装
+
+先退出 Obsidian，直接复制执行对应系统的命令，**无需修改命令或填写知识库路径**。脚本会下载最新正式版本、逐文件校验并安装，无需管理员权限，也不需要 Node.js 或 Git。
+
+**macOS：**打开「终端」，执行：
+
+```bash
+tt_installer="$(curl -fsSL https://raw.githubusercontent.com/cookaihq/tt-workbench/main/scripts/install/install-macos.sh)" && /bin/bash -c "$tt_installer"
+```
+
+**Windows：**打开 **PowerShell**（Windows PowerShell 5.1 或 PowerShell 7），执行：
+
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod -Uri 'https://raw.githubusercontent.com/cookaihq/tt-workbench/main/scripts/install/install-windows.ps1' -ErrorAction Stop).TrimStart([char]0xFEFF)))
+```
+
+命令执行后，终端会提示：
+
+```text
+请将知识库文件夹拖入此窗口（也可粘贴完整路径），然后按回车：
+```
+
+从 Finder 或资源管理器中，将**要安装工作台的 Obsidian 知识库文件夹**拖入终端，按回车即可继续。也可以直接粘贴文件夹的完整路径；终端添加的引号和转义字符由脚本处理，不用手动删除。
+
+知识库和配置目录须已存在；尚未创建时，先在 Obsidian 中创建并打开知识库。默认配置目录为 `.obsidian`；自定义配置目录的用法见[命令安装说明](docs/workbench/installation.md#命令安装)。
+
+看到安装成功提示后，重新打开 Obsidian，在「设置 → 第三方插件」中允许第三方插件并启用 **「tt 工作台」**，然后点击左侧工作台图标。脚本只安装文件，不自动启用插件。
+
+这两套脚本用于首次安装；发现已有 `tt-workbench` 或旧 `tannt-workbench` 时会停止并提示更新或迁移。脚本源码：[macOS](scripts/install/install-macos.sh)、[Windows](scripts/install/install-windows.ps1)；离线运行与排错见[命令安装说明](docs/workbench/installation.md#命令安装)。
+
 ## 开始使用
 
 1. 打开工作台，用「随手记」保存一条想法或链接；保存后可以在收件箱中找到它。

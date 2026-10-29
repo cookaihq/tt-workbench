@@ -30,8 +30,11 @@ test('系统解压完整 ZIP，保留中文、隐藏、空与二进制资源，�
   // Use an independent OS extractor, never a decoder that mirrors our ZIP writer.
   const extraction = process.platform === 'win32'
     ? spawnSync('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', "$ErrorActionPreference = 'Stop'; Expand-Archive -LiteralPath $env:TT_ZIP_TEST_ARCHIVE -DestinationPath $env:TT_ZIP_TEST_DESTINATION"], { encoding: 'utf8', windowsHide: true, env: { ...process.env, TT_ZIP_TEST_ARCHIVE: zipPath, TT_ZIP_TEST_DESTINATION: destination } })
+    : process.platform === 'darwin'
+    // Apple's unzip can corrupt UTF-8 names; ditto uses the native archive behavior.
+    ? spawnSync('/usr/bin/ditto', ['-x', '-k', zipPath, destination], { encoding: 'utf8' })
     : spawnSync('unzip', ['-q', zipPath, '-d', destination], { encoding: 'utf8' });
-  if (extraction.error?.code === 'ENOENT') return t.skip('System ZIP extraction needs Windows PowerShell or unzip.');
+  if (extraction.error?.code === 'ENOENT') return t.skip('System ZIP extraction needs Windows PowerShell, macOS ditto or unzip.');
   assert.equal(extraction.status, 0, extraction.stderr || String(extraction.error));
   assert.deepEqual(await fs.readdir(vault), [configDir]);
   assert.deepEqual(await fs.readdir(destination), [packages.ID]);

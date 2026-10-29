@@ -1,12 +1,40 @@
 # 工作台安装说明
 
-手动安装步骤和可复制的 Agent 提示词见 [README](../../README.md#安装)。本文补充安装核验、已有插件处理和常见问题。
+手动安装步骤、可复制的 Agent 提示词与 macOS / Windows 安装命令见 [README](../../README.md#安装)。本文补充安装核验、已有插件处理和常见问题。
 
 ## 选择正确的安装包
 
-从官方仓库 [`cookaihq/tt-workbench`](https://github.com/cookaihq/tt-workbench/releases) 的最新正式 Release 下载 `tt-workbench.zip`。它包含一个顶层 `tt-workbench/` 文件夹，内部为完整插件和内置资源。自动生成的 `Source code` 是源码；`tt-workbench.bundle.json.gz` 供更新器读取，均不能代替可解压安装的 ZIP。
+从官方仓库 [`cookaihq/tt-workbench`](https://github.com/cookaihq/tt-workbench/releases) 的最新正式 Release 下载 `tt-workbench.zip`。它包含一个顶层 `tt-workbench/` 文件夹，内部为完整插件和内置资源。自动生成的 `Source code` 是源码；`tt-workbench.bundle.json.gz` 供更新器和命令安装脚本读取，均不能代替可直接解压安装的 ZIP。
 
 需要桌面版 Obsidian，最低版本以包内 `manifest.json` 的 `minAppVersion` 为准。基础安装不需要 Node.js、Git 或构建工具。没有正式版本或完整附件时，请报告尚不可下载，不用克隆构建替代用户安装。
+
+## 命令安装
+
+README 的命令从官方仓库 `main` 分支取得脚本，然后在本机执行；插件文件来自执行时选定的最新正式 Release。macOS 使用系统自带 Bash、JavaScript for Automation 和命令行工具；Windows 使用 PowerShell 5.1 / 7 与 .NET，不需要安装额外运行时或永久修改 PowerShell 执行策略。
+
+两套脚本位于 `scripts/install/`。README 命令不需要填写路径：执行后，按提示将 Obsidian 知识库文件夹拖入终端并按回车，也可粘贴完整路径。脚本识别 macOS 终端的反斜杠转义、单 / 双引号，以及 Windows 的路径引号；输入仅作为路径处理，不执行其中的命令。
+
+知识库绝对路径由本次输入明确指定，配置目录须已存在（默认 `.obsidian`）。自动化调用仍可使用 `--vault` / `-Vault` 参数跳过提示；可用 `--help` / `-Help` 查看参数。脚本不会从当前目录推断知识库，也不会创建新知识库。
+
+如使用自定义配置目录，在 README 的 macOS 命令末尾加上 `-- --config-dir "你的配置目录"`，Windows 命令末尾加上 `-ConfigDir '你的配置目录'`。之后仍按提示拖入知识库文件夹。
+
+脚本固定一次 Release 查询结果，下载同版 `release.json` 和 `tt-workbench.bundle.json.gz`，检查清单、路径、文件数量、大小、SHA-256、插件 ID 与版本，再安装并读回校验。只写 `<配置目录>/plugins/`，不改笔记、启用列表、设置或 Skill 入口。输出会提示插件要求的最低 Obsidian 版本；实际启用和兼容性需在 Obsidian 中确认。
+
+下载与准备文件放在 `<配置目录>/plugins/tt-workbench-recovery/command-<随机标识>/`，正常退出时清理；使用现有的 `tt-workbench.install-lock` 路径避免同机安装器并发。下载、校验失败时不会写入正式插件目录；若在最终移动后读回失败，保留已安装目录并报告错误。进程被强制结束后，可能留下准备目录、锁或已移动的插件；先核对现场，再处理遗留项，不能直接重新覆盖。
+
+如需离线安装，在另一台能联网的电脑上下载两套脚本中对应的一套，以及**同一正式 Release** 的 `release.json` 和 `tt-workbench.bundle.json.gz`，将这三个文件放到同一目录。在该目录打开终端，使用本机文件安装，例如：
+
+```bash
+bash ./install-macos.sh --package-dir "$PWD"
+```
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install-windows.ps1 -PackageDirectory $PWD.Path
+```
+
+运行后同样按提示拖入知识库文件夹并按回车。这里的 `-ExecutionPolicy Bypass` 只作用于本次 PowerShell 进程；组织策略仍可能限制执行。离线安装保留同样的校验与已有安装保护。
+
+网络失败、GitHub 限流或 Release 缺少附件时，脚本会报错退出，可在网络恢复后重试，或使用离线方式。已有插件请按下文更新或迁移，不能通过删除原目录来跳过保护。
 
 ## Agent 安装核验
 

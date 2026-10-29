@@ -2,7 +2,7 @@
 
 工作台源码在独立软件仓库，知识库使用完整安装包。顶部版本号表示当前运行版本；启动后及定时检查新版本，点击版本号可配置公开 GitHub 的 `owner/repository` 并手动检查。地址未配置时显示未配置且不联网，不使用知识库的 Git origin。
 
-首次安装使用完整 `tt-workbench.zip`，手动步骤与 Agent 安装提示词见 [README](../../README.md#安装)。ZIP 包含原始 `release.json`，解压安装后可使用下述更新流程。不要直接解压覆盖已有插件目录。
+首次安装可使用完整 `tt-workbench.zip` 或命令安装脚本，手动步骤、Agent 安装提示词与 macOS / Windows 命令见 [README](../../README.md#安装)。这两种文件安装方式均保留原始 `release.json`，安装后可使用下述更新流程。不要直接解压覆盖已有插件目录。
 
 ## 检查与安装
 
