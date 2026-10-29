@@ -334,7 +334,7 @@ async function main(args) {
   if (command === 'snapshot') {
     if (baselinePath || json) throw new Error('snapshot 仅接受 --vault 和 --config-dir。');
     const snapshot = await takeSnapshot(options);
-    const folder = await mkdtemp(path.join(os.tmpdir(), 'tannt-fns-audit-'));
+    const folder = await mkdtemp(path.join(os.tmpdir(), 'tt-fns-audit-'));
     const filename = path.join(folder, 'baseline.json');
     await writeFile(filename, `${JSON.stringify(snapshot, null, 2)}\n`, { mode: 0o600 });
     console.log(filename);

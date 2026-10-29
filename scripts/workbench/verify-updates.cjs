@@ -16,7 +16,7 @@ module.exports = async function verifyUpdates(app) {
   const save = async stage => { report.stage = stage; await fs.writeFile(path.join(directory, 'native.json'), JSON.stringify(report, null, 2) + '\n'); };
   await save('check drafts');
   try {
-    assert.ok(!app.workspace.getLeavesOfType('tannt-workbench').some(({ view: v }) =>
+    assert.ok(!app.workspace.getLeavesOfType('tt-workbench').some(({ view: v }) =>
       v.saving || v.fnsUI?.busy || v.captureContent?.value || v.inboxDrafts?.size || v.workUI?.drafts?.size || v.taskUI?.drafts?.size || v.issueUI?.drafts?.size || v.issueUI?.createDraft), '工作台有未保存输入，不能重载。');
     const { createFnsRuntime } = requireLocal('./fns-runtime.js');
     const { FnsSyncService } = requireLocal('../../lib/fns/sync.cjs');
@@ -32,10 +32,10 @@ module.exports = async function verifyUpdates(app) {
     assert.ok((await fs.lstat(path.join(root, app.vault.configDir, 'plugins/fast-note-sync/data.json'))).isSymbolicLink());
     report.checks.push('FNS code exclusions loaded; other runtime settings and device link preserved');
     await save('reload workbench');
-    await app.plugins.unloadPlugin('tannt-workbench');
-    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tannt-workbench');
+    await app.plugins.unloadPlugin('tt-workbench');
+    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tt-workbench');
     const version = JSON.parse(await fs.readFile(path.join(root, 'apps/workbench/manifest.json'), 'utf8')).version;
-    const plugin = app.plugins.plugins['tannt-workbench']; assert.equal(plugin.manifest.version, version);
+    const plugin = app.plugins.plugins['tt-workbench']; assert.equal(plugin.manifest.version, version);
     const view = await plugin.openWorkbench();
     assert.ok(view.updatesUI.button.textContent.includes('v' + version));
     // Startup already begins the check. Wait for that operation rather than
@@ -61,7 +61,7 @@ module.exports = async function verifyUpdates(app) {
 
 module.exports.layout = async function verifyLayout(app, window) {
   assert.equal(app.vault.getName(), 'tannt');
-  const view = app.workspace.getLeavesOfType('tannt-workbench').map(l => l.view).find(v => v.contentEl.ownerDocument.defaultView === window);
+  const view = app.workspace.getLeavesOfType('tt-workbench').map(l => l.view).find(v => v.contentEl.ownerDocument.defaultView === window);
   assert.ok(view, '请在工作台独立窗口的控制台运行布局验收。');
   const browser = window.require('electron').remote.getCurrentWindow();
   const previous = browser.getBounds(), directory = path.join(app.vault.adapter.getBasePath(), '.scratch/workbench-updates/verification');
@@ -98,11 +98,11 @@ module.exports.scopeUI = async function verifyScopeUI(app) {
   let browser, previous;
   const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
   try {
-    assert.ok(!app.workspace.getLeavesOfType('tannt-workbench').some(({ view: v }) =>
+    assert.ok(!app.workspace.getLeavesOfType('tt-workbench').some(({ view: v }) =>
       v.saving || v.fnsUI?.busy || v.captureContent?.value || v.captureTitle?.value || v.captureSources?.value || v.inboxDrafts?.size || v.workUI?.drafts?.size || v.taskUI?.drafts?.size || v.issueUI?.drafts?.size || v.issueUI?.createDraft), '工作台有未保存输入，不能重载。');
-    await app.plugins.unloadPlugin('tannt-workbench');
-    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tannt-workbench');
-    const plugin = app.plugins.plugins['tannt-workbench']; assert.equal(plugin.manifest.version, report.version);
+    await app.plugins.unloadPlugin('tt-workbench');
+    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tt-workbench');
+    const plugin = app.plugins.plugins['tt-workbench']; assert.equal(plugin.manifest.version, report.version);
     const view = await plugin.openWorkbench(true), ui = view.updatesUI;
     ui.open(); await ui.refreshScope();
     assert.equal(ui.scopeReport.status, 'configured');
@@ -122,7 +122,7 @@ module.exports.scopeUI = async function verifyScopeUI(app) {
     assert.equal(ui.scopeChecking, false);
     assert.equal(ui.scopeEl.open, true); assert.equal(ui.scopeReport.status, 'configured');
     assert.equal(ui.scopeStatus.textContent, '已设置 · 已生效');
-    assert.ok(ui.scopeEl.textContent.includes('apps/workbench/data/'));
+    assert.ok(ui.scopeEl.textContent.includes('.system/.workbench-runtime/'));
     assert.ok(ui.scopeEl.textContent.includes(`${app.vault.configDir}/community-plugins.json`));
     report.status = ui.scopeStatus.textContent;
     report.directories = ui.scopeReport.directories;

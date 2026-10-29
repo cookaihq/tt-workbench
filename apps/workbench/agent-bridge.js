@@ -1,4 +1,5 @@
 "use strict";
+const runtimeStorage = require('./shared.js').runtimeStorage;
 const { ROOTS } = require("./vault-paths.js");
 const http = require("node:http"), fs = require("node:fs/promises"), path = require("node:path");
 const { randomBytes, createHash } = require("node:crypto");
@@ -11,12 +12,10 @@ class AgentBridge {
   constructor(plugin) { this.plugin = plugin; this.requests = new Map(); }
   async start() {
     const p = this.plugin, fns = p.app.plugins.plugins["fast-note-sync"];
-    const rules = JSON.parse(fns?.settings?.syncExcludeFolders || "[]");
-    if (!rules.some(r => r.pattern === "apps/workbench/data/")) throw Error("Agent 保存入口未启动：请先排除 apps/workbench/data/ 的 FNS 同步。");
-    const directory = path.join(p.app.vault.adapter.getBasePath(), "apps/workbench/data");
-    for (const relative of ["apps", "apps/workbench"]) if ((await fs.lstat(path.join(p.app.vault.adapter.getBasePath(), relative))).isSymbolicLink()) throw Error("运行数据路径不能包含符号链接。");
-    await fs.mkdir(directory, { recursive: true });
-    if ((await fs.lstat(directory)).isSymbolicLink()) throw Error("运行数据目录不能是符号链接。");
+    runtimeStorage.assertFnsExcluded(fns?.settings || {}, p.app.vault.adapter.getBasePath());
+    this.releaseRuntime = await runtimeStorage.lease(p.app.vault.adapter.getBasePath());
+    try {
+    const directory = await runtimeStorage.plain(p.app.vault.adapter.getBasePath(), runtimeStorage.relative('', p.app.vault.adapter.getBasePath()), { mkdir: true });
     this.location = path.join(directory, "agent-bridge.json");
     try { if ((await fs.lstat(this.location)).isSymbolicLink()) throw Error("连接信息不能是符号链接。"); } catch (e) { if (e.code !== "ENOENT") throw e; }
     this.token = randomBytes(32).toString("hex");
@@ -26,10 +25,12 @@ class AgentBridge {
       await fs.writeFile(this.location, JSON.stringify({ port: this.server.address().port, token: this.token, vault: p.app.vault.adapter.getBasePath(), pid: process.pid }), { mode: 0o600 });
       await fs.chmod(this.location, 0o600);
     } catch (e) { this.server.close(); throw e; }
+    } catch (e) { await this.releaseRuntime(); this.releaseRuntime = null; throw e; }
   }
   async stop() {
-    this.server?.close();
+    if (this.server?.listening) await new Promise(resolve => this.server.close(resolve));
     if (this.location) try { const value = JSON.parse(await fs.readFile(this.location, "utf8")); if (value.token === this.token) await fs.unlink(this.location); } catch {}
+    if (this.releaseRuntime) { await this.releaseRuntime(); this.releaseRuntime = null; }
   }
   async handle(req, res) {
     const respond = (status, value) => { if (!res.destroyed) { res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); res.end(JSON.stringify(value)); } };

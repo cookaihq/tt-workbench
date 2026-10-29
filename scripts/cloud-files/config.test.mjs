@@ -8,7 +8,7 @@ import { CONFIG_PATH, parseTargets, validateTargets, selectUploadTarget, inspect
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const targets = { default_account: '工作', remote_parents: { '工作': '/资料/中文 空格/O\'Brien #读书/"课程"', personal: '/私人附件' } };
 async function fixture(t) {
-  const parent = path.join(repo, 'apps/workbench/data/cloud-config-tests');
+  const parent = path.join(repo, 'tmp/cloud-config-tests');
   await fs.mkdir(parent, { recursive: true });
   const root = await fs.mkdtemp(path.join(parent, 'case-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));

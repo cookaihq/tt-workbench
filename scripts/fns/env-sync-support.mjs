@@ -4,6 +4,7 @@
 import { readFile, writeFile, mkdir, lstat } from 'node:fs/promises';
 import checkedFiles from '../../lib/fns/files.cjs';
 import deviceConfig from '../../lib/fns/device-config.cjs';
+import runtimeStorage from '../../lib/runtime/storage.cjs';
 export const { replaceChecked } = checkedFiles;
 import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -82,9 +83,10 @@ async function main() {
   }
   const { default: target } = await import('../../lib/config/target.cjs');
   const vault = target.vaultArgument();
-  const device = await deviceConfig.inspectDeviceConfig({ vault });
+  const configDir = target.configDirectory(process.argv[process.argv.indexOf('--config-dir') + 1] && process.argv.includes('--config-dir') ? process.argv[process.argv.indexOf('--config-dir') + 1] : undefined);
+  const device = await deviceConfig.inspectDeviceConfig({ vault, configDir });
   if (device.status !== 'ready') throw new Error(device.message || '先将 FNS 旧链接迁回插件目录，再检查或修改配置。');
-  const pluginDir = path.join(vault, '.obsidian/plugins/fast-note-sync');
+  const pluginDir = path.join(vault, configDir, 'plugins/fast-note-sync');
   const mainPath = path.join(pluginDir, 'main.js'), settingsPath = path.join(pluginDir, 'data.json');
   const manifest = JSON.parse(await readFile(path.join(pluginDir, 'manifest.json'), 'utf8'));
   const source = await readFile(mainPath, 'utf8'), rawSettings = await readFile(settingsPath, 'utf8');
@@ -98,7 +100,7 @@ async function main() {
   if (manifest.version !== '2.4.0' || state === 'unsupported') throw new Error('不支持当前 FNS 构建；未修改。');
   const config = await inspectConfig(vault);
   if (config.state === 'missing') throw new Error('先完成共享网盘目标 JSONC 迁移，再移除旧支持。');
-  const enabled = JSON.parse(await readFile(path.join(vault, '.obsidian/community-plugins.json'), 'utf8'));
+  const enabled = JSON.parse(await readFile(path.join(vault, configDir, 'community-plugins.json'), 'utf8'));
   if (enabled.includes('fast-note-sync')) throw new Error('先在 Obsidian 中暂时关闭 FNS，再退役旧补丁，以避免运行中覆盖配置。');
   for (const rule of rules(desired.configSyncOtherDirs)) {
     const relative = rule.pattern.trim().replace(/\/+$/, '');
@@ -108,7 +110,10 @@ async function main() {
   }
   const upstream = originalBundle(source);
   if (source === upstream && !settingsChanged) { console.log(JSON.stringify({ changed: false, scanner: state, legacySupportRetired: true })); return; }
-  const id = randomUUID(), recovery = path.join(vault, 'apps/workbench/data/fns-env-support', id);
+  runtimeStorage.assertFnsExcluded(settings, vault);
+  const release = await runtimeStorage.lease(vault);
+  try {
+  const id = randomUUID(), recovery = await runtimeStorage.plain(vault, runtimeStorage.relative('fns-env-support/' + id, vault), { mkdir: true });
   await mkdir(recovery, { recursive: true, mode: 0o700 });
   await writeFile(path.join(recovery, 'main.before.js'), source, { flag: 'wx', mode: 0o600 });
   await writeFile(path.join(recovery, 'settings.before.json'), rawSettings, { flag: 'wx', mode: 0o600 });
@@ -119,6 +124,7 @@ async function main() {
   if (settingsChanged) await replaceChecked(settingsPath, rawSettings, JSON.stringify(desired, null, 2) + '\n', recovery);
   if (source !== upstream) await replaceChecked(mainPath, source, upstream, recovery);
   console.log(JSON.stringify({ changed: true, scanner: 'upstream', legacySupportRetired: true, recoveryId: id, restartRequired: true }));
+  } finally { await release(); }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -30,7 +30,7 @@ module.exports = async function verify(app, nodeBinary, existingView) {
   });
   let view, manualLeaf;
   try {
-    const plugin = app.plugins.plugins['tannt-workbench'];
+    const plugin = app.plugins.plugins['tt-workbench'];
     report.version = plugin.manifest.version; assert.equal(report.version, '0.15.0');
     view = existingView || await plugin.openWorkbench(true);
     const win = view.contentEl.ownerDocument.defaultView;
@@ -109,7 +109,7 @@ module.exports = async function verify(app, nodeBinary, existingView) {
 
     // Reopen this task's own view, leaving pre-existing user views intact.
     await view.leaf.setViewState({ type: 'empty' });
-    await view.leaf.setViewState({ type: 'tannt-workbench', active: true, state: { path: notePath } });
+    await view.leaf.setViewState({ type: 'tt-workbench', active: true, state: { path: notePath } });
     view = view.leaf.view; if (view.leaf.loadIfDeferred) await view.leaf.loadIfDeferred();
     view.navigate('01.收件箱'); view.inboxFilter = 'all'; view.refreshList();
     await view.openNote(notePath); assert.equal(view.statusEl.dataset.kind, 'loaded');

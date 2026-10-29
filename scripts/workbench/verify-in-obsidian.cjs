@@ -26,7 +26,7 @@ module.exports = async function verify(app) {
   let editor;
   const marker = '工作台验收：这是通过 Obsidian 编辑器写入、随后重新读取的文字。';
   const edited = original + '\n\n' + marker + '\n\n- [ ] 只读预览不能改写此项\n';
-  let plugin = app.plugins.plugins['tannt-workbench'];
+  let plugin = app.plugins.plugins['tt-workbench'];
   assert.ok(plugin, '插件未加载');
   let view;
   try {
@@ -59,7 +59,7 @@ module.exports = async function verify(app) {
     try {
       view.reader.read = async () => { throw Object.assign(new Error('fault injection'), { code: 'PERMISSION' }); };
       // Use the actual error class from the installed module for the same user-facing path.
-      const ReaderError = require(path.join(root, '.obsidian/plugins/tannt-workbench/note-reader.js')).NoteReadError;
+      const ReaderError = require(path.join(root, '.obsidian/plugins/tt-workbench/note-reader.js')).NoteReadError;
       view.reader.read = async () => { throw new ReaderError('PERMISSION', '当前设备没有读取这份笔记的权限。'); };
       submit('欢迎.md');
       await wait(() => view.statusEl.dataset.errorCode === 'PERMISSION', '读取失败提示');

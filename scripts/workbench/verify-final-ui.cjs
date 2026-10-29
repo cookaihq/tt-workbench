@@ -1,6 +1,6 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async function(app,v){
- assert.equal(app.vault.getName(),'tannt');const root=app.vault.adapter.getBasePath(),out=path.join(root,'docs/workbench/verification'),report={checkedAt:new Date().toISOString(),version:app.plugins.plugins['tannt-workbench'].manifest.version,checks:[]};
+ assert.equal(app.vault.getName(),'tannt');const root=app.vault.adapter.getBasePath(),out=path.join(root,'docs/workbench/verification'),report={checkedAt:new Date().toISOString(),version:app.plugins.plugins['tt-workbench'].manifest.version,checks:[]};
  const pause=ms=>new Promise(r=>setTimeout(r,ms));const win=view=>view.contentEl.ownerDocument.defaultView.require('electron').remote.getCurrentWindow();
  const capture=async(view,name)=>{const rect=view.contentEl.getBoundingClientRect();await fs.writeFile(path.join(out,name),(await win(view).webContents.capturePage({x:Math.round(rect.x),y:Math.round(rect.y),width:Math.floor(rect.width),height:Math.floor(rect.height)})).toPNG());};
  try{
@@ -17,7 +17,7 @@ module.exports=async function(app,v){
   w.setSize(1280,860);await pause(160);v.navigate('01.收件箱');await pause(180);await capture(v,'final-inbox-1280.png');
   v.navigate('@projects');await pause(180);await capture(v,'final-projects-1280.png');
   v.taskUI.selectedTab=null;v.navigate('@tasks');await v.openNote('02.独立任务/工作台验收-研究会话切换/任务说明.md');const tabs=[...v.bodyEl.querySelectorAll('[role=tab]')];tabs[2].click();await pause(120);await capture(v,'final-query-1280.png');
-  const main=app.workspace.getLeavesOfType('tannt-workbench').find(l=>l.view.contentEl&&l.view.contentEl.ownerDocument!==v.contentEl.ownerDocument);if(main){main.view.pageScope='@tasks';main.view.taskUI.selectedTab=null;await main.view.openNote('02.独立任务/工作台验收-研究会话切换/任务说明.md');await app.workspace.revealLeaf(main);await pause(150);await capture(main.view,'final-main-window.png');report.mainWindow=true;}else report.mainWindow=false;
+  const main=app.workspace.getLeavesOfType('tt-workbench').find(l=>l.view.contentEl&&l.view.contentEl.ownerDocument!==v.contentEl.ownerDocument);if(main){main.view.pageScope='@tasks';main.view.taskUI.selectedTab=null;await main.view.openNote('02.独立任务/工作台验收-研究会话切换/任务说明.md');await app.workspace.revealLeaf(main);await pause(150);await capture(main.view,'final-main-window.png');report.mainWindow=true;}else report.mainWindow=false;
   await app.workspace.revealLeaf(v.leaf);v.taskUI.selectedTab=null;await v.openNote('02.独立任务/工作台验收-研究会话切换/任务说明.md');v.workspaceEl.scrollTop=0;report.passed=report.mainWindow;
  }catch(e){report.passed=false;report.failure=e.stack;}
  await fs.writeFile(path.join(out,'final-ui.json'),JSON.stringify(report,null,2)+'\n');return v;

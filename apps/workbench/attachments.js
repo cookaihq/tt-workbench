@@ -29,7 +29,7 @@ class AttachmentStore{
     if(!file)throw new Error('附件未到达当前设备或链接不存在');await this.safe(file.path);return file;
   }
   async render(content,article,note,component,render){
-    const entries=[],stamp='TANNTATTACHMENT'+Date.now();
+    const entries=[],stamp='TTATTACHMENT'+Date.now();
     const mark=(target,raw)=>{const id=stamp+entries.length+'END';entries.push({id,target,raw});return '\n\n'+id+'\n\n';};
     let safe=content.replace(/!\[\[([^\]\n]+)\]\]/g,(raw,target)=>mark(target.split('|')[0],raw)).replace(/!\[[^\]\n]*\]\((<[^>]+>|[^)\n]+)\)/g,(raw,target)=>mark(target.replace(/^<|>$/g,''),raw));
     if(unsupportedMarkup(safe)){article.createEl('p',{text:'此段包含暂不支持的嵌入或 HTML，显示原文。',cls:'tw-source-notice'});article.createEl('pre',{text:content,cls:'tw-source'});return;}

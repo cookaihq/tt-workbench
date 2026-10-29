@@ -15,7 +15,7 @@ const report = { state, started: new Date().toISOString(), checks: [], files: []
 const hash = x => createHash('sha256').update(x).digest('hex');
 const exists = p => fs.access(p).then(() => true, () => false);
 async function bridgeState() {
-  const location = path.join(root, 'apps/workbench/data/agent-bridge.json');
+  const location = path.join(root, '.system/.workbench-runtime/agent-bridge.json');
   if (!await exists(location)) return { bridgeFilePresent: false, bridgeReachable: false };
   const { port, pid } = JSON.parse(await fs.readFile(location, 'utf8'));
   assert.ok(Number.isInteger(port) && port > 0 && port < 65536, 'invalid bridge port');

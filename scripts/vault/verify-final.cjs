@@ -15,16 +15,16 @@ module.exports = async function(app, leaf) {
   };
   let view;
   try {
-    for (const {view:v} of app.workspace.getLeavesOfType('tannt-workbench')) {
+    for (const {view:v} of app.workspace.getLeavesOfType('tt-workbench')) {
       assert.ok(!v.captureContent?.value && !v.inboxDrafts?.size && !v.workUI?.drafts?.size && !v.taskUI?.drafts?.size && !v.issueUI?.drafts?.size && !v.issueUI?.createDraft, 'preserve all existing drafts before reload');
     }
-    await app.plugins.unloadPlugin('tannt-workbench');
-    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tannt-workbench');
-    await leaf.setViewState({type:'tannt-workbench',active:true});
+    await app.plugins.unloadPlugin('tt-workbench');
+    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tt-workbench');
+    await leaf.setViewState({type:'tt-workbench',active:true});
     if (leaf.loadIfDeferred) await leaf.loadIfDeferred();
-    view = leaf.view; const plugin = app.plugins.plugins['tannt-workbench'];
+    view = leaf.view; const plugin = app.plugins.plugins['tt-workbench'];
     report.version = plugin.manifest.version;
-    const shared = require(path.join(root,'.obsidian/plugins/tannt-workbench/vault-lib'));
+    const shared = require(path.join(root,'.obsidian/plugins/tt-workbench/vault-lib'));
     const p = '01.收件箱/2026-10/工作台验收-共同规则-剪藏-20261021/记录.md';
     const selected = 'From personal notes to journaling, knowledge bases, and project management, Obsidian gives you the tools to come up with ideas and organize\u00a0them.';
     const raw = await read(p), parts = shared.documentParts(raw);
@@ -52,7 +52,7 @@ module.exports = async function(app, leaf) {
       await wait(()=>!view.inboxDrafts.has(notePath),'native save completion');
     } finally { plugin.editor.exclusiveFile = original; }
     assert.ok(seen.some(p=>p.endsWith('/before.txt')) && seen.some(p=>p.endsWith('/after.txt')),'real update used non-Markdown snapshots');
-    assert.ok(!seen.some(p=>p.startsWith('apps/workbench/data/vault-io/updates/')&&p.endsWith('.md')),'no Markdown runtime snapshot created');
+    assert.ok(!seen.some(p=>p.startsWith('.system/.workbench-runtime/vault-io/updates/')&&p.endsWith('.md')),'no Markdown runtime snapshot created');
     const updated = shared.documentParts(await read(notePath)).fields;
     assert.equal(updated.created,initial.created);assert.equal(updated.created_timezone,initial.created_timezone);
     report.snapshots = seen;report.files.push(notePath);

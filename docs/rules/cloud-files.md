@@ -1,6 +1,6 @@
 # 网盘托管文件
 
-本规则适用于当前 `tannt` 库，术语见 [GLOSSARY](../../GLOSSARY.md)。由项目级 `tannt-cloud-files` Skill 维护；附件归属、笔记链接和写入冲突仍遵守[附件](attachments.md)及[写入规则](writing-and-changes.md)。
+本规则适用于当前 `tannt` 库，术语见 [GLOSSARY](../../GLOSSARY.md)。由项目级 `tt-cloud-files` Skill 维护；附件归属、笔记链接和写入冲突仍遵守[附件](attachments.md)及[写入规则](writing-and-changes.md)。
 
 ## 范围与配置
 
@@ -20,13 +20,13 @@ MP3、MP4、MOV、WAV、ZIP 原文件纳入网盘托管，不通过 FNS 传输�
 
 配置或检查共享目标的 FNS 同步、接入新设备时，必须读取并遵守[网盘目标配置同步维护](../agents/fns-cloud-targets-sync.md)。该普通路径使用 FNS 原生的笔记和附件同步，不登记到隐藏目录同步列表，不要求单文件补丁。
 
-`skills/tannt-cloud-files/settings.yaml` 只保留共同配置：`provider` 固定为 `baidu`；`vault_directory` 固定为 `tannt`，不随本地目录名变化；`extensions` 为已纳入的扩展名，忽略大小写，不带点号。
+`skills/tt-cloud-files/settings.yaml` 只保留共同配置：`provider` 固定为 `baidu`；`vault_directory` 固定为 `tannt`，不随本地目录名变化；`extensions` 为已纳入的扩展名，忽略大小写，不带点号。
 
 ## 多账号授权
 
 本机可以配置多个独立授权档案，每个档案用稳定的 `account_ref` 别名定位，并绑定百度用户信息接口返回的账号 `uk`。本规则统一将 `uk` 以字符串记为 `account_id`；昵称仅供显示，不能代替账号身份。
 
-替代文件记录账号别名和账号 ID，不保存访问令牌、刷新令牌、密码或 Cookie。授权秘密保存在库外本机授权表或系统凭据存储中，具体接入方式见 Skill 的[百度网盘接入说明](../../skills/tannt-cloud-files/references/baidu-access.md)。各设备分别配置相同别名与同一账号的绑定；更换或刷新令牌不修改文件归属。
+替代文件记录账号别名和账号 ID，不保存访问令牌、刷新令牌、密码或 Cookie。授权秘密保存在库外本机授权表或系统凭据存储中，具体接入方式见 Skill 的[百度网盘接入说明](../../skills/tt-cloud-files/references/baidu-access.md)。各设备分别配置相同别名与同一账号的绑定；更换或刷新令牌不修改文件归属。
 
 每次远端操作先按记录的别名取得授权，再读取实际账号信息，核对返回 `uk`、本机档案 `account_id` 与替代文件 `remote.account_id` 一致。对同一批操作可在同一授权上下文核对一次；换凭据或换账号后重新核对。账号缺失、过期或不匹配时停止该账号的远端步骤，不能回退到默认账号。新文件在首次核对后写入这两个身份字段。
 

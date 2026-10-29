@@ -74,14 +74,14 @@ integrationTest('repair is idempotent, reversible and rejects unknown builds', (
 
 test('settings enable only .env and preserve unrelated sync behavior', () => {
   const before = { configSyncEnabled: false, configSyncOtherDirs: '', syncExcludeWhitelist: '',
-    syncExcludeFolders: '[{"pattern":"apps/workbench/data","caseSensitive":false}]',
+    syncExcludeFolders: '[{"pattern":".system/.workbench-runtime","caseSensitive":false},{"pattern":".system/workbench","caseSensitive":false}]',
     pdfSyncEnabled: true, syncEnabled: true, offlineDeleteSyncEnabled: false,
     syncExcludeExtensions: '[{"pattern":".mp4"}]' };
   const after = envOnlySettings(before);
   assert.equal(after.configSyncEnabled, true);
   assert.equal(after.pdfSyncEnabled, false);
   assert.deepEqual(JSON.parse(after.configSyncOtherDirs).map(x => x.pattern), ['.env']);
-  assert.deepEqual(JSON.parse(after.syncExcludeFolders).map(x => x.pattern), ['apps/workbench/data', '.obsidian', '_localStorage']);
+  assert.deepEqual(JSON.parse(after.syncExcludeFolders).map(x => x.pattern), ['.system/.workbench-runtime', '.system/workbench', '.obsidian', '_localStorage']);
   for (const key of ['syncEnabled', 'offlineDeleteSyncEnabled', 'syncExcludeExtensions']) assert.equal(after[key], before[key]);
   assert.deepEqual(envOnlySettings(after), after);
 });
@@ -119,7 +119,7 @@ test('the old install command fails before it can modify a device', () => {
 });
 
 integrationTest('hidden-item audit recognizes exact-file coverage only with the verified repair', async t => {
-  const tempRoot = new URL('../../apps/workbench/data/fns-validation/', import.meta.url);
+  const tempRoot = new URL('../../tmp/fns-validation/', import.meta.url);
   await mkdir(tempRoot, { recursive: true });
   const vault = await mkdtemp(fileURLToPath(new URL('audit-', tempRoot)));
   t.after(() => rm(vault, { recursive: true, force: true }));

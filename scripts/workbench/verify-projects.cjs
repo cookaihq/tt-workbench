@@ -9,7 +9,7 @@ module.exports = async function verify(app, view) {
   const report={checkedAt:new Date().toISOString(),entry:'真实工作台项目创建、筛选、状态与文件回读',checks:[],samples:[]};
   const check=name=>report.checks.push({name,passed:true});
   const wait=async(fn,label)=>{const end=Date.now()+12000;while(Date.now()<end){if(await fn())return;await new Promise(r=>setTimeout(r,80));}throw new Error('等待超时：'+label);};
-  const plugin=app.plugins.plugins['tannt-workbench'];
+  const plugin=app.plugins.plugins['tt-workbench'];
   const workUI=view.workUI;
   const source=p=>fs.readFile(path.join(root,p),'utf8');
   const fields=raw=>plugin.editor.parseYaml(plugin.inbox.getFrontMatterInfo(raw).frontmatter);

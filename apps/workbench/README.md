@@ -1,12 +1,12 @@
-# tannt 工作台
+# tt 工作台
 
-桌面版在 Obsidian 内读写当前知识库的真实笔记。`0.23.0` 增加已确认的 A「列表＋详情」Skill 安装页面，分别管理 Codex、Claude Code 的本库入口；Agent 规则页面读取明确选择的个人规则源。软件由独立工作台仓库维护，插件安装、Skill 注册、服务配置及全局规则接入分别操作。
+桌面版在 Obsidian 内读写当前知识库的真实笔记。`0.25.0` 默认使用各实例 `.system/.workbench-runtime/`。顶部「运行数据位置」可修改或恢复默认，并迁移历史数据；安装和检查不自动搬动数据。下文 `<运行目录>` 表示该实例的实际设置。`0.23.0` 增加已确认的 A「列表＋详情」Skill 安装页面，分别管理 Codex、Claude Code 的本库入口；Agent 规则页面读取明确选择的个人规则源。软件由独立工作台仓库维护，插件安装、Skill 注册、服务配置及全局规则接入分别操作。
 
 本轮验收见 [Skill 安装实施记录](../../.scratch/workbench-skill-installation/implementation.md)。历史功能的验证范围保留在[验收索引](../../docs/workbench/verification/README.md)；新 Agent 查询、双电脑 FNS 与其他平台不能由本轮本机验收代替。
 
 ## 打开
 
-在当前库的 Obsidian 命令面板搜索 `tannt 工作台`，执行“打开工作台”；也可以点击左侧功能区的工作台图标。右上角“独立窗口”打开属于同一 Obsidian 库的独立窗口。宽窗口遵循布局 A，窄窗口改为上下排列并可滚动。
+在当前库的 Obsidian 命令面板搜索 `tt 工作台`，执行“打开工作台”；也可以点击左侧功能区的工作台图标。右上角“独立窗口”打开属于同一 Obsidian 库的独立窗口。宽窗口遵循布局 A，窄窗口改为上下排列并可滚动。
 
 ## 日常操作
 
@@ -21,8 +21,8 @@
 - **开发 Issue**：搜索和筛选本库功能开发事项，新建、编辑描述及评论、勾选验收条件、修改分诊/标签/优先级、关联前置事项、关闭及重开，也可复制最新 Agent 上下文。宽窗口并排显示，窄窗口通过“返回 Issue 列表”往返。文件保存在 `.scratch/<功能>/issues/`；格式与操作见[说明](../../docs/workbench/issues.md)，本机交付结果见[验收记录](../../docs/workbench/verification/issues/README.md)。
 - **Skill 安装**：在「系统」中选择宿主，查看五项内置 Skill 的用途、入口与实际状态，按项或批量安装。明确归属的旧入口可修复，同名内容保留；移除前确认入口，安装后提供使用说明。详见[安装与使用](../../docs/workbench/agent-skill-setup.md)。
 - **Agent 规则**：明确选择包含主文件和场景目录的规则源，只读浏览正文及本机原文件，核对主入口与共用场景入口。未接入时可复制整理 Skill 的提示词，在 Agent 会话中形成并执行获准方案。个人正文由所选知识库或规则仓库管理，工作台不分发个人正文。详见[页面说明](../../docs/workbench/agent-rules.md)。
-- **通过 Agent 保存**：在以本库根目录为工作目录的会话中，新存内容使用 `tannt-capture`，修改已有内容使用 `tannt-update-note`。两者直接操作本库文件，不要求 Obsidian 启动、打开本库或启用工作台。Codex 与 Claude Code 的项目级入口、实际验证结果和限制见[技能接入说明](../../docs/workbench/agent-skill-setup.md)。其他 Agent 与远程环境分别验证后再声明支持。
-- **浏览器剪藏**：用 Chrome 打开[书签安装页](browser-clipper.html)，将“保存到 tannt”加入书签。选中文字后调用书签，无选区时保存 URL；在 Obsidian 弹窗核对并点击保存。详见[剪藏说明](../../docs/workbench/browser-capture.md)。
+- **通过 Agent 保存**：在以本库根目录为工作目录的会话中，新存内容使用 `tt-capture`，修改已有内容使用 `tt-update-note`。两者直接操作本库文件，不要求 Obsidian 启动、打开本库或启用工作台。Codex 与 Claude Code 的项目级入口、实际验证结果和限制见[技能接入说明](../../docs/workbench/agent-skill-setup.md)。其他 Agent 与远程环境分别验证后再声明支持。
+- **浏览器剪藏**：用 Chrome 打开[书签安装页](browser-clipper.html)，将“保存到 tt 工作台”加入书签。选中文字后调用书签，无选区时保存 URL；在 Obsidian 弹窗核对并点击保存。详见[剪藏说明](../../docs/workbench/browser-capture.md)。
 
 创建、更新与关联都写回 Markdown。状态没有独立的可编辑 JSON 副本。查看格式、模板及复用方式：[Inbox](../../docs/workbench/inbox-format.md)、[项目与任务](../../docs/workbench/work-records.md)、[知识与成果复用](../../docs/workbench/note-reuse.md)。
 
@@ -42,25 +42,20 @@
 
 业务列表覆盖 `0.收件箱/`、`1.项目/`、`2.领域/`、`3.资源/`、`4.存档/` 的 Markdown，以及根目录普通 Markdown。知识与经验在资源中共同浏览；项目、领域与资源可由首页和按需 MOC 链接。规则文件、隐藏路径、程序与开发文档、`tmp/`、`node_modules/` 和符号链接不在业务读取范围。预览不修改原文或补写属性。当前库与私人库独立，疑似私密内容由 Skill 提醒，不转存私人库。
 
-“开发 Issue”使用单独的文件读取范围，不改变上述业务入口。Issue 保存时核对编辑前原文，并在 `apps/workbench/data/issues/operations/` 保留恢复记录；外部编辑器和跨设备同步不服从本机写锁时，没有跨入口事务保证。页面不会按验收勾选比例自动关闭 Issue，也不会启动 Agent。
+“开发 Issue”使用单独的文件读取范围，不改变上述业务入口。Issue 保存时核对编辑前原文，并在 `<运行目录>/issues/operations/` 保留恢复记录；外部编辑器和跨设备同步不服从本机写锁时，没有跨入口事务保证。页面不会按验收勾选比例自动关闭 Issue，也不会启动 Agent。
 
 未支持的 HTML 或嵌入语法显示原文；笔记嵌入不递归读取。FNS 网页仅验证到登录页，尚未取得笔记正文；当前阅读使用 Obsidian 文件接口。没有自动采集、媒体解析、对外发布或 Agent 启动监控功能。
 
 ## 安装与更新
 
-右上角显示运行版本。更新模块按明确配置的 Git 来源检查发布安装包；当前开发检出没有远端，本轮没有推送或发布。发布与另一台设备的配置见[工作台版本与更新](../../docs/workbench/updates.md)。
+首次安装可下载完整 ZIP 并解压，也可复制提示词让 Agent 安装，步骤与当前发布状态见[安装入口](../../README.md#安装)。用户安装无需构建。完整包包含插件模块、共享实现、工具、Skill、模板和规则，保留全部资源及校验清单。
 
-在软件仓库执行构建与安装，显式指定目标知识库：
+右上角显示运行版本。点击版本号，将更新来源设为公开软件仓库 `cookaihq/tt-workbench`，检查新版本并按提示安装；更新后重启 Obsidian。已有插件设置会保留。旧 `tannt-workbench` 用户先按[改名迁移说明](../../docs/workbench/updates.md#从-tannt-改名迁移)处理。
 
-```sh
-npm run build
-npm run install-plugin -- --vault "<知识库绝对路径>"
-```
-
-完整安装包包含插件模块、共享实现、CLI、活动 Skill、共同业务规则与模板，布局见[软件资源说明](../../docs/agents/package-layout.md)。安装器只写目标插件目录并保留插件设置；首次安装在 Obsidian 启用，更新后重新加载应用。插件安装不注册 Skill、不改 FNS 或个人规则。安装器返回的恢复副本按当前设备的备份约定保存。
+插件安装不注册 Skill、不改 FNS 或个人规则。恢复与同步排除见[工作台版本与更新](../../docs/workbench/updates.md)，源码构建与发布见[开发说明](../../docs/workbench/development.md)。
 
 Skill 入口在页面中单独管理，也可执行 `node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<知识库绝对路径>" --agent codex`；加 `--check` 只读核对。入口指向目标库内的安装资源，不依赖软件检出。修复和移除必须明确选择 Skill，未知来源内容不会自动覆盖或清理。
-旧 HTTP 接口连接信息存于 `apps/workbench/data/agent-bridge.json`，权限 0600，插件启动时重建，只监听本机随机端口。关闭库或退出应用时该文件可能遗留，文件存在不能作为服务在线的证据；后续维护项见[记录](../../.scratch/vault-rules-and-skills/backlog.md)。新 Agent CLI 不读取该文件。CLI 与工作台的文件锁、重试回执和失败恢复材料存于 `apps/workbench/data/vault-io/`，不要求有工作台进程；两种运行记录都不能复制到另一台使用，须保持 Git 忽略及本机 FNS 排除。新业务与存档路径中的 `tmp/` 排除须重新核验，不能用旧目录的[历史配置证据](../../docs/workbench/verification/root-numbering-migration.json)代替。
+旧 HTTP 接口连接信息存于 `<运行目录>/agent-bridge.json`，权限 0600，插件启动时重建，只监听本机随机端口。关闭库或退出应用时该文件可能遗留，文件存在不能作为服务在线的证据；后续维护项见[记录](../../.scratch/vault-rules-and-skills/backlog.md)。新 Agent CLI 不读取该文件。CLI 与工作台的文件锁、重试回执和失败恢复材料存于 `<运行目录>/vault-io/`，不要求有工作台进程；两种运行记录都不能复制到另一台使用，须保持 Git 忽略及本机 FNS 排除。新业务与存档路径中的 `tmp/` 排除须重新核验，不能用旧目录的[历史配置证据](../../docs/workbench/verification/root-numbering-migration.json)代替。
 
 FNS 设备配置按[本机普通配置与旧链接迁回规则](../../docs/agents/fns-device-config.md)维护；第二台电脑的插件、启用状态、运行条件及排除规则仍须单独核验。见[第二台电脑验收步骤](../../docs/workbench/second-computer.md)。
 

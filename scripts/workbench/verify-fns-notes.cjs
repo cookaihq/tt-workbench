@@ -21,16 +21,16 @@ module.exports = async function verifyFnsNotes(app) {
   let fixture, browser, bounds;
   await checkpoint('核对未保存输入');
   try {
-    assert.ok(!app.workspace.getLeavesOfType('tannt-workbench').some(({ view: v }) =>
+    assert.ok(!app.workspace.getLeavesOfType('tt-workbench').some(({ view: v }) =>
       v.saving || v.fnsUI?.busy || v.fnsUI?.notesEditorDraft || v.captureContent?.value || v.inboxDrafts?.size
       || v.workUI?.drafts?.size || v.taskUI?.drafts?.size || v.issueUI?.drafts?.size || v.issueUI?.createDraft), '存在未保存输入，不能重载');
-    const stateFile = path.join(root, 'apps/workbench/data/fns-sync/state.json');
+    const stateFile = path.join(root, '.system/.workbench-runtime/fns-sync/state.json');
     const sourceFile = path.join(root, app.vault.configDir, 'plugins/fast-note-sync/data.json');
     const stateBefore = await fs.readFile(stateFile, 'utf8'), sourceBefore = await fs.readFile(sourceFile, 'utf8');
     await checkpoint('加载已安装版本');
-    await app.plugins.unloadPlugin('tannt-workbench'); await app.plugins.loadManifests();
-    await app.plugins.enablePluginAndSave('tannt-workbench');
-    const plugin = app.plugins.plugins['tannt-workbench'];
+    await app.plugins.unloadPlugin('tt-workbench'); await app.plugins.loadManifests();
+    await app.plugins.enablePluginAndSave('tt-workbench');
+    const plugin = app.plugins.plugins['tt-workbench'];
     const version = JSON.parse(await fs.readFile(path.join(root, 'apps/workbench/manifest.json'), 'utf8')).version;
     assert.equal(plugin.manifest.version, version); report.version = version;
     const view = await plugin.openWorkbench(); view.navigate('@fns'); await view.fnsUI.refresh();
@@ -41,7 +41,7 @@ module.exports = async function verifyFnsNotes(app) {
     browser = win.require('electron').remote.getCurrentWindow(); bounds = browser.getBounds();
     browser.webContents.closeDevTools();
     report.checks.push('正式插件加载、FNS 入口及真实 v2 说明占位显示');
-    const requireLocal = createRequire(path.join(root, '.obsidian/plugins/tannt-workbench/main.js'));
+    const requireLocal = createRequire(path.join(root, '.obsidian/plugins/tt-workbench/main.js'));
     const { FnsUI } = requireLocal('./fns-ui.js');
     const { FIELDS } = requireLocal('./lib/fns/rules.cjs');
     const { noteChanges } = requireLocal('./lib/fns/notes.cjs');
@@ -64,7 +64,7 @@ module.exports = async function verifyFnsNotes(app) {
       preview: async () => ({ version: 100, diff: Object.fromEntries(FIELDS.map(field => [field, { add: [], remove: [] }])), noteChanges: noteChanges(notes, saved || notes) }),
       publish: async () => { published = true; throw Error('禁止从界面夹具发布'); }
     };
-    fixture = win.document.body.createDiv({ cls: 'tannt-workbench', attr: { 'data-page': 'fns' } });
+    fixture = win.document.body.createDiv({ cls: 'tt-workbench', attr: { 'data-page': 'fns' } });
     Object.assign(fixture.style, { position: 'fixed', inset: '0', zIndex: '99999', overflow: 'auto' });
     const content = fixture.createDiv(); content.style.padding = '20px';
     const fakeView = { contentEl: fixture, pageScope: '@fns', plugin: { fns: service },

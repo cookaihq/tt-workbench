@@ -20,7 +20,7 @@ module.exports = async function migrate(app) {
   const manifest = JSON.parse(await fs.readFile(path.join(backup, 'manifest.json'), 'utf8'));
   const report = { checkedAt: new Date().toISOString(), mapping: RENAMED_ROOTS, moved: [], rewritten: [], existingUnresolved: [] };
   const reportPath = path.join(root, 'docs/workbench/verification/root-numbering-migration.json');
-  const leaves = app.workspace.getLeavesOfType('tannt-workbench');
+  const leaves = app.workspace.getLeavesOfType('tt-workbench');
   const states = leaves.map(leaf => ({ leaf, state: leaf.getViewState() }));
   try {
     assert.deepEqual(manifest.roots, RENAMED_ROOTS);
@@ -35,7 +35,7 @@ module.exports = async function migrate(app) {
       assert.ok(!v.saving && !v.captureContent?.value.trim() && !v.inboxDrafts?.size && !v.workUI?.drafts?.size && !v.taskUI?.drafts?.size, '工作台有未提交内容，暂不重载');
       assert.ok(!v.workUI?.name.value && !v.workUI?.goal.value && !v.taskUI?.name.value && !v.taskUI?.goal.value, '创建表单有未提交内容，暂不重载');
     }
-    const p = app.plugins.plugins['tannt-workbench'];
+    const p = app.plugins.plugins['tt-workbench'];
     const beforeNotes = p.reader.list().map(file => file.path);
     const beforeLinks = [];
     const edits = [];
@@ -66,7 +66,7 @@ module.exports = async function migrate(app) {
     report.fnsRules = JSON.parse(fns.settings.syncExcludeFolders);
     const persisted = JSON.parse(await fs.readFile(path.join(root, '.obsidian/plugins/fast-note-sync/data.json'), 'utf8'));
     assert.deepEqual(JSON.parse(persisted.syncExcludeFolders), report.fnsRules);
-    await app.plugins.unloadPlugin('tannt-workbench');
+    await app.plugins.unloadPlugin('tt-workbench');
     for (const [old, next] of Object.entries(RENAMED_ROOTS)) {
       await app.vault.rename(app.vault.getAbstractFileByPath(old), next);
       report.moved.push({ old, next });
@@ -97,9 +97,9 @@ module.exports = async function migrate(app) {
     }
     assert.equal(hash(await fs.readFile(path.join(root, '.scratch/vault-workspace-v1/spec.md'))), manifest.frozenSpecSHA256);
     await app.plugins.loadManifests();
-    await app.plugins.enablePluginAndSave('tannt-workbench');
+    await app.plugins.enablePluginAndSave('tt-workbench');
     for (const { leaf, state } of states) await leaf.setViewState(state);
-    const current = app.plugins.plugins['tannt-workbench'];
+    const current = app.plugins.plugins['tt-workbench'];
     assert.equal(current.manifest.version, '0.14.0');
     assert.deepEqual(current.reader.list().map(file => file.path).sort(), beforeNotes.map(mapPreviousPath).sort());
     app.workspace.requestSaveLayout();

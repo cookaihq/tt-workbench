@@ -28,7 +28,7 @@ test('缺属性可增加状态但不生成类型、创建时间或时区', () =>
 const fs = require('node:fs/promises');
 const path = require('node:path');
 async function harness(current = original) {
-  const parent = path.resolve(__dirname, '../data/vault-module-tests'); await fs.mkdir(parent, {recursive:true});
+  const parent = path.resolve(__dirname, '../../../tmp/vault-module-tests'); await fs.mkdir(parent, {recursive:true});
   const root = await fs.mkdtemp(path.join(parent, 'editor-'));
   await fs.mkdir(path.join(root, '01.收件箱')); const notePath = '01.收件箱/一.md';
   await fs.writeFile(path.join(root,notePath), current);

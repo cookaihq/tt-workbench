@@ -8,7 +8,7 @@ module.exports = async function verifyInboxLayout(app, existingView) {
   const root = app.vault.adapter.getBasePath();
   const out = path.join(root, 'docs/workbench/verification');
   const samples = JSON.parse(await fs.readFile(path.join(out, '02-native-inbox.json'), 'utf8')).samples.map(sample => ({ ...sample, path: mapPreviousPath(sample.path) }));
-  const plugin = app.plugins.plugins['tannt-workbench'];
+  const plugin = app.plugins.plugins['tt-workbench'];
   const view = existingView || await plugin.openWorkbench(true, samples[0].path);
   await view.openNote(samples[0].path);
   view.pageScope = '01.收件箱';

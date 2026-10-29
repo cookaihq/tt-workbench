@@ -48,7 +48,7 @@ test('普通文件即使内容相同也未接入；读取与提示词不写入�
   const s = await h.reader.scan();
   assert.equal(s.status, 'attention'); assert.deepEqual(s.entries.map(i => i.status), ['file', 'missing']);
   assert.equal(s.documents.find(d => d.id === 'local-main').content, original);
-  assert.equal(s.skill.available, false); assert.match(skillPrompt(s), /\$tannt-organize-agent-rules/);
+  assert.equal(s.skill.available, false); assert.match(skillPrompt(s), /\$tt-organize-agent-rules/);
   assert.match(skillPrompt(s), /普通文件/); assert.match(skillPrompt(s), /确认后/);
   assert.match(skillPrompt(s), /当前任务：整理并接入主规则/);
   assert.match(skillPrompt(s), /主规则与场景规则的拆分及接入方案/);

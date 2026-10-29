@@ -28,9 +28,9 @@ try{
   const count=(await request({action:'info'})).notes.length;
   const privateResult=await request({action:'capture',request_id:randomUUID(),privacy:'suspected',content:'合成验收：非常私密的个人日记占位，无真实隐私。'});assert.equal(privateResult.code,'PRIVACY_REVIEW');assert.equal((await request({action:'info'})).notes.length,count);
   const boundary=await request({action:'read',path:'../tannt_pra/不得访问.md'});assert.equal(boundary.code,'OUT_OF_SCOPE');check('合成疑似私密输入被拒绝且没有新增记录；库外路径在读取前被拒绝');
-  const cfg=JSON.parse(await readFile(path.join(root,'apps/workbench/data/agent-bridge.json'),'utf8'));assert.equal((await stat(path.join(root,'apps/workbench/data/agent-bridge.json'))).mode&0o777,0o600);
+  const cfg=JSON.parse(await readFile(path.join(root,'.system/.workbench-runtime/agent-bridge.json'),'utf8'));assert.equal((await stat(path.join(root,'.system/.workbench-runtime/agent-bridge.json'))).mode&0o777,0o600);
   const unauth=await new Promise((resolve,reject)=>{const req=http.request({hostname:'127.0.0.1',port:cfg.port,path:'/request',method:'POST',headers:{'Content-Type':'application/json'}},res=>{res.resume();res.on('end',()=>resolve(res.statusCode));});req.on('error',reject);req.end('{"action":"info"}');});assert.equal(unauth,403);
-  const fns=JSON.parse(await readFile(path.join(root,'.obsidian/plugins/fast-note-sync/data.json'),'utf8'));assert.ok(JSON.parse(fns.syncExcludeFolders).some(r=>r.pattern==='apps/workbench/data/'));assert.equal(fns.syncExcludeWhitelist,'');check('连接文件权限为0600，未认证请求拒绝，实际 FNS 配置已排除运行数据且无白名单覆盖');
+  const fns=JSON.parse(await readFile(path.join(root,'.obsidian/plugins/fast-note-sync/data.json'),'utf8'));assert.ok(JSON.parse(fns.syncExcludeFolders).some(r=>r.pattern==='.system/.workbench-runtime/'));assert.equal(fns.syncExcludeWhitelist,'');check('连接文件权限为0600，未认证请求拒绝，实际 FNS 配置已排除运行数据且无白名单覆盖');
   report.passed=true;
 }catch(e){report.passed=false;report.failure=e.stack;}
 await writeFile(path.join(root,'docs/workbench/verification/08-agent-save.json'),JSON.stringify(report,null,2)+'\n');

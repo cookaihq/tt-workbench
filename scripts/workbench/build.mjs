@@ -2,6 +2,7 @@ import { mkdir, writeFile, lstat, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import packages from '../../lib/workbench/package.cjs';
+import { encodePluginZip } from './zip.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const bundle = await packages.collectPackage(root);
 const output = path.join(root, 'dist');
@@ -16,5 +17,12 @@ for (const [name, bytes] of bundle.files) {
 }
 await writeFile(path.join(output, 'plugin/release.json'), JSON.stringify(bundle.release, null, 2) + '\n');
 await writeFile(path.join(output, 'release.json'), JSON.stringify(bundle.release, null, 2) + '\n');
-await writeFile(path.join(output, 'tannt-workbench.bundle.json.gz'), packages.encodeBundle(bundle));
+await writeFile(path.join(output, 'tt-workbench.bundle.json.gz'), packages.encodeBundle(bundle));
+await writeFile(path.join(output, 'tt-workbench.zip'), encodePluginZip(bundle));
+const legacyBundle = path.join(output, 'tannt-workbench.bundle.json.gz');
+try {
+  const info = await lstat(legacyBundle);
+  if (!info.isFile() || info.isSymbolicLink()) throw Error('旧构建包路径不是普通文件。');
+  await rm(legacyBundle);
+} catch (error) { if (error.code !== 'ENOENT') throw error; }
 console.log(JSON.stringify({ version: bundle.release.version, files: bundle.files.size, output }));

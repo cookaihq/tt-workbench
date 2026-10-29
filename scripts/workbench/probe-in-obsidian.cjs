@@ -10,13 +10,13 @@ module.exports = async function probe(app) {
   const report = { vault: 'tannt', checkedAt: new Date().toISOString() };
   await app.plugins.loadManifests();
   try {
-    if (app.plugins.plugins['tannt-workbench']) {
+    if (app.plugins.plugins['tt-workbench']) {
       if (typeof app.plugins.unloadPlugin !== 'function') throw new Error('当前 Obsidian 不提供插件重载入口。');
-      await app.plugins.unloadPlugin('tannt-workbench');
+      await app.plugins.unloadPlugin('tt-workbench');
     }
-    await app.plugins.enablePluginAndSave('tannt-workbench');
-    report.pluginLoaded = Boolean(app.plugins.plugins['tannt-workbench']);
-    if (report.pluginLoaded) await app.plugins.plugins['tannt-workbench'].openWorkbench();
+    await app.plugins.enablePluginAndSave('tt-workbench');
+    report.pluginLoaded = Boolean(app.plugins.plugins['tt-workbench']);
+    if (report.pluginLoaded) await app.plugins.plugins['tt-workbench'].openWorkbench();
   } catch (error) {
     report.pluginLoaded = false;
     report.pluginError = String(error.message);

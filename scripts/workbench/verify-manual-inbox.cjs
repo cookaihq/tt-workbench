@@ -14,7 +14,7 @@ module.exports = async function verify(app) {
     while (Date.now() < end) { if (await predicate()) return; await new Promise(r => setTimeout(r, 80)); }
     throw new Error('等待超时：' + label);
   };
-  const plugin = app.plugins.plugins['tannt-workbench'];
+  const plugin = app.plugins.plugins['tt-workbench'];
   const manualPath = '01.收件箱/工作台验收-手动收件箱.md';
   const originalAttachmentRule = app.vault.getConfig('attachmentFolderPath');
   const manualFile = app.vault.getAbstractFileByPath(manualPath);
@@ -92,8 +92,8 @@ module.exports = async function verify(app) {
     check('真实无效属性与重复 ID 显示具体问题及对方路径，不合并或丢失正文');
     for (const [p, raw] of restore.splice(0)) await app.vault.modify(app.vault.getAbstractFileByPath(p), raw);
     await wait(() => !app.metadataCache.getCache(manualPath)?.frontmatter?.id, '恢复验收样例属性');
-    await app.plugins.unloadPlugin('tannt-workbench'); await app.plugins.enablePluginAndSave('tannt-workbench');
-    view = await app.plugins.plugins['tannt-workbench'].openWorkbench(); view.pageScope = '01.收件箱'; view.refreshList();
+    await app.plugins.unloadPlugin('tt-workbench'); await app.plugins.enablePluginAndSave('tt-workbench');
+    view = await app.plugins.plugins['tt-workbench'].openWorkbench(); view.pageScope = '01.收件箱'; view.refreshList();
     await view.openNote(manualPath); assert.ok(view.bodyEl.textContent.includes(body));
     assert.equal(await read(manualPath), savedManual);
     assert.equal(app.vault.getConfig('attachmentFolderPath'), originalAttachmentRule);

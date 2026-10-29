@@ -1,7 +1,7 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async function(app,v){
   assert.equal(app.vault.getName(),'tannt');
-  const root=app.vault.adapter.getBasePath(),plugin=app.plugins.plugins['tannt-workbench'];
+  const root=app.vault.adapter.getBasePath(),plugin=app.plugins.plugins['tt-workbench'];
   const report={checkedAt:new Date().toISOString(),checks:[]};const check=name=>report.checks.push({name,passed:true});
   const read=p=>fs.readFile(path.join(root,p),'utf8');const fields=raw=>plugin.editor.parseYaml(plugin.inbox.getFrontMatterInfo(raw).frontmatter);
   const wait=async fn=>{const end=Date.now()+10000;while(Date.now()<end){if(await fn())return;await new Promise(r=>setTimeout(r,50));}throw Error('等待超时');};
@@ -34,6 +34,6 @@ module.exports=async function(app,v){
     try{ui.form.requestSubmit();await wait(()=>!ui.submit.disabled);assert.equal(ui.message.dataset.errorCode,'WRITE_FAILED');assert.ok(ui.message.textContent.includes('任务已保存到'));}finally{app.vault.process=process;}
     const savedPath=ui.attempt.path;assert.ok(await read(savedPath));ui.form.requestSubmit();await wait(()=>!ui.submit.disabled);assert.equal(ui.message.dataset.kind,'saved');assert.ok(fields(await read(source)).related_work.includes(`[[${savedPath}]]`));
     assert.equal(app.vault.getMarkdownFiles().filter(f=>f.basename==='任务说明').length,taskCount+1);check('任务已创建但关联保存失败时报告两处结果；同表单重试不重复创建');
-    const leaf=v.leaf;await app.plugins.unloadPlugin('tannt-workbench');await app.plugins.enablePluginAndSave('tannt-workbench');await leaf.setViewState({type:'tannt-workbench',active:true});v=leaf.view;await v.openNote(savedPath);assert.ok(v.bodyEl.querySelector('.tw-linked-sources'));check('插件重载后从单份已保存关联恢复双向回查');report.passed=true;
+    const leaf=v.leaf;await app.plugins.unloadPlugin('tt-workbench');await app.plugins.enablePluginAndSave('tt-workbench');await leaf.setViewState({type:'tt-workbench',active:true});v=leaf.view;await v.openNote(savedPath);assert.ok(v.bodyEl.querySelector('.tw-linked-sources'));check('插件重载后从单份已保存关联恢复双向回查');report.passed=true;
   }catch(e){report.passed=false;report.failure=e.stack;}finally{if(v.taskUI.dialog.open)v.taskUI.dialog.close();await fs.writeFile(path.join(root,'docs/workbench/verification/07-links.json'),JSON.stringify(report,null,2)+'\n');}return v;
 };

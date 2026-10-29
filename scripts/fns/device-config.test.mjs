@@ -10,11 +10,11 @@ import { replaceChecked } from './env-sync-support.mjs';
 
 const deviceId = 'darwin-1111111111111111', secondId = 'win32-2222222222222222';
 const raw = JSON.stringify({ apiToken: 'device-A-test-token', configSyncOtherDirs: '',
-  syncExcludeFolders: JSON.stringify([{ pattern: 'apps/workbench/data/', caseSensitive: false }]),
+  syncExcludeFolders: JSON.stringify([{ pattern: '.system/.workbench-runtime/', caseSensitive: false }, {pattern: '.system/workbench/', caseSensitive: false}]),
   unknownFutureSetting: { preserve: true } }) + '\n';
 const run = promisify(execFile);
 async function fixture(t, contents = raw) {
-  const base = fileURLToPath(new URL('../../apps/workbench/data/fns-validation/', import.meta.url));
+  const base = fileURLToPath(new URL('../../tmp/fns-validation/', import.meta.url));
   await mkdir(base, { recursive: true });
   const vault = await mkdtemp(path.join(base, 'device-'));
   t.after(() => rm(vault, { recursive: true, force: true }));
@@ -134,7 +134,7 @@ test('Git-tracked local entry and unignored backups are rejected', async t => {
   const f = await linked(t);
   await run('git', ['init', '--quiet', f.vault]);
   await assert.rejects(migrateDeviceConfig(f.options), /整体排除 Git/);
-  await writeFile(path.join(f.vault, '.gitignore'), '/apps/workbench/data/\n');
+  await writeFile(path.join(f.vault, '.gitignore'), '/.system/.workbench-runtime/\n');
   await run('git', ['add', '--', path.relative(f.vault, f.source)], { cwd: f.vault });
   await assert.rejects(migrateDeviceConfig(f.options), /已被 Git 跟踪/);
   assert.ok((await lstat(f.source)).isSymbolicLink());

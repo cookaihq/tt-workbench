@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 module.exports = async function(app, view, { resume = false, visualOnly = false } = {}) {
   assert.equal(app.vault.getName(), 'tannt');
   const root = app.vault.adapter.getBasePath(), out = path.join(root, 'docs/workbench/verification/issues');
-  let report = { checkedAt: new Date().toISOString(), version: app.plugins.plugins['tannt-workbench'].manifest.version, entry: '真实 Obsidian 工作台页面与表单', checks: [], samples: [], status: 'running' };
+  let report = { checkedAt: new Date().toISOString(), version: app.plugins.plugins['tt-workbench'].manifest.version, entry: '真实 Obsidian 工作台页面与表单', checks: [], samples: [], status: 'running' };
   await fs.mkdir(out, { recursive: true });
   if (resume) {
     report = JSON.parse(await fs.readFile(path.join(out, 'ui.json'), 'utf8'));
@@ -23,7 +23,7 @@ module.exports = async function(app, view, { resume = false, visualOnly = false 
   const click = (parent, label) => control(parent, label).click();
   const dialog = () => view.contentEl.querySelector('dialog[open]');
   const submit = async (form, allowError = false) => { const button = form.querySelector('[type=submit]'); assert.ok(button); form.requestSubmit(); await wait(() => !button.disabled, '表单保存'); const message = form.querySelector('.tw-status'); if (!allowError) assert.notEqual(message?.dataset.kind, 'error', message?.textContent); return message; };
-  const read = relative => app.plugins.plugins['tannt-workbench'].issues.read(relative);
+  const read = relative => app.plugins.plugins['tt-workbench'].issues.read(relative);
   const open = async relative => { await view.openNote(relative); await view.issueUI.refresh(); await wait(() => view.issueUI.note?.path === relative && view.statusEl.dataset.kind === 'loaded', '打开 Issue'); };
   const tab = name => click(view.bodyEl, `Issue ${name}`);
   const win = () => view.contentEl.ownerDocument.defaultView.require('electron').remote.getCurrentWindow();
@@ -109,7 +109,7 @@ module.exports = async function(app, view, { resume = false, visualOnly = false 
     await check('实际文件被其他入口修改后，陈旧表单拒绝覆盖，保留输入与恢复材料');
 
     tab('评论'); form = view.bodyEl.querySelector('.tw-issue-comment-form'); fill(form, '添加评论', '保存失败后仍保留的评论');
-    injectedStore = app.plugins.plugins['tannt-workbench'].issues; savedIO = injectedStore.io;
+    injectedStore = app.plugins.plugins['tt-workbench'].issues; savedIO = injectedStore.io;
     injectedStore.io = { ...savedIO, rename: async () => { throw Object.assign(Error('injected EACCES'), { code: 'EACCES' }); } };
     const failed = await submit(form, true); assert.equal(failed.dataset.errorCode, 'WRITE_FAILED'); assert.equal(control(form, '添加评论').value, '保存失败后仍保留的评论');
     injectedStore.io = savedIO; await submit(form); assert.ok((await read(main)).comments.some(c => c.body === '保存失败后仍保留的评论'));
@@ -141,12 +141,12 @@ module.exports = async function(app, view, { resume = false, visualOnly = false 
       await open(main); click(view.bodyEl, '关闭 Issue'); const f = dialog().querySelector('form'); fill(f, '关闭结果', 'completed'); fill(f, '关闭结论（选填）', '真实页面表单与保存检查完成。'); await submit(f); await wait(() => !dialog());
     }
     const expected = (await read(main)).content, leaf = view.leaf;
-    assert.ok(!app.workspace.getLeavesOfType('tannt-workbench').some(l => {
+    assert.ok(!app.workspace.getLeavesOfType('tt-workbench').some(l => {
       const v = l.view;
       return v.saving || v.captureContent?.value || v.inboxDrafts?.size || v.workUI?.drafts?.size || v.taskUI?.drafts?.size || v.issueUI?.drafts?.size || v.issueUI?.createDraft;
     }), '重载插件前必须保留并先保存所有窗口的未提交输入');
-    await app.plugins.unloadPlugin('tannt-workbench'); await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tannt-workbench');
-    await leaf.setViewState({ type: 'tannt-workbench', active: true, state: { scope: '@issues', path: main } });
+    await app.plugins.unloadPlugin('tt-workbench'); await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tt-workbench');
+    await leaf.setViewState({ type: 'tt-workbench', active: true, state: { scope: '@issues', path: main } });
     await app.workspace.revealLeaf(leaf); if (leaf.loadIfDeferred) await leaf.loadIfDeferred(); view = leaf.view;
     await open(main); assert.equal((await read(main)).content, expected); assert.equal(view.issueUI.note.state, 'completed');
     assert.ok(view.scope == null || typeof view.scope.handleKey === 'function', '页面范围不能覆盖 Obsidian 的快捷键对象');
@@ -180,7 +180,7 @@ module.exports = async function(app, view, { resume = false, visualOnly = false 
     report.finalVisual = { checkedAt: new Date().toISOString(), windowId: w.id, refreshTitleAndFilters: true, realKeyboard: true, noHorizontalOverflow: true };
     w.setSize(1280, 860); await pause(160);
     if (!visualOnly) {
-    const mainLeaf = app.workspace.getLeavesOfType('tannt-workbench').find(l => l.view.contentEl.ownerDocument === app.workspace.containerEl.ownerDocument);
+    const mainLeaf = app.workspace.getLeavesOfType('tt-workbench').find(l => l.view.contentEl.ownerDocument === app.workspace.containerEl.ownerDocument);
     if (mainLeaf?.loadIfDeferred) await mainLeaf.loadIfDeferred(); const mainView = mainLeaf?.view;
     assert.ok(mainView); mainView.navigate('@issues'); await mainView.openNote(main); assert.ok(mainView.bodyEl.querySelector('.tw-issue-detail'));
     }

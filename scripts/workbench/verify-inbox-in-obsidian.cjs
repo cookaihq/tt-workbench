@@ -18,7 +18,7 @@ module.exports = async function verifyInbox(app) {
     while (Date.now() < until) { if (await predicate()) return; await new Promise(resolve => setTimeout(resolve, 80)); }
     throw new Error('等待超时：' + label);
   };
-  let plugin = app.plugins.plugins['tannt-workbench'];
+  let plugin = app.plugins.plugins['tt-workbench'];
   assert.equal(plugin.manifest.version, '0.2.0');
   let view = await plugin.openWorkbench();
   const before = plugin.reader.list().filter(file => file.path.startsWith('01.收件箱/')).map(file => file.path);
@@ -114,9 +114,9 @@ module.exports = async function verifyInbox(app) {
     assert.ok(view.listEl.textContent.includes('待整理'));
     check('基本列表显示真实标题、待整理状态、按当前设备换算的时间与时区');
 
-    await app.plugins.unloadPlugin('tannt-workbench');
-    await app.plugins.enablePluginAndSave('tannt-workbench');
-    plugin = app.plugins.plugins['tannt-workbench'];
+    await app.plugins.unloadPlugin('tt-workbench');
+    await app.plugins.enablePluginAndSave('tt-workbench');
+    plugin = app.plugins.plugins['tt-workbench'];
     view = await plugin.openWorkbench();
     view.pageScope = '01.收件箱';
     view.refreshList();

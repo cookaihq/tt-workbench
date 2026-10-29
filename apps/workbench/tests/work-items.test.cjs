@@ -86,7 +86,7 @@ test('用途逐项更新保留其他用途和自定义属性，实际使用需�
 
 for (const kind of ['project', 'material']) {
   test(`${kind} 归档失败沿用请求，成功恢复后相同内容可以再次归档`, async t => {
-    const parent = path.resolve(__dirname, '../data/work-items-tests');
+    const parent = path.resolve(__dirname, '../../../tmp/work-items-tests');
     await fs.mkdir(parent, { recursive: true });
     const root = await fs.mkdtemp(path.join(parent, `${kind}-`));
     t.after(() => fs.rm(root, { recursive: true, force: true }));
@@ -118,7 +118,7 @@ for (const kind of ['project', 'material']) {
     assert.deepEqual([...store.relocations.values()], [retryId]);
     await fs.rmdir(path.join(root, storedDirectory));
     assert.equal((await move(active, 'archive')).path, archived);
-    const receipt = JSON.parse(await fs.readFile(path.join(root, 'apps/workbench/data/vault-io/transfers', `${retryId}.json`), 'utf8'));
+    const receipt = JSON.parse(await fs.readFile(path.join(root, '.system/.workbench-runtime/vault-io/transfers', `${retryId}.json`), 'utf8'));
     assert.equal(receipt.phase, 'complete');
     assert.equal((await move(archived, 'restore')).path, active);
     assert.equal(await files.read(active), original, 'Restored content must reuse the original cache key');

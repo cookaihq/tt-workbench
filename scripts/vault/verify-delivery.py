@@ -14,11 +14,11 @@ digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 baseline = json.loads((OUT / 'baseline.json').read_text())
 installer = (ROOT / 'scripts/workbench/install.mjs').read_text()
 names = ast.literal_eval(re.search(r'const names = (\[[^;]+\]);', installer)[1])
-pairs = [(ROOT / 'apps/workbench' / name, ROOT / '.obsidian/plugins/tannt-workbench' / name) for name in names]
+pairs = [(ROOT / 'apps/workbench' / name, ROOT / '.obsidian/plugins/tt-workbench' / name) for name in names]
 for p in (ROOT / 'lib/vault').rglob('*'):
     relative = p.relative_to(ROOT / 'lib/vault')
     if p.is_file() and 'tests' not in relative.parts and p.name != 'README.md':
-        pairs.append((p, ROOT / '.obsidian/plugins/tannt-workbench/vault-lib' / relative))
+        pairs.append((p, ROOT / '.obsidian/plugins/tt-workbench/vault-lib' / relative))
 installed = [{'source': str(a.relative_to(ROOT)), 'installed': str(b.relative_to(ROOT)),
               'sha256': digest(a), 'matched': b.is_file() and digest(a) == digest(b)} for a, b in pairs]
 

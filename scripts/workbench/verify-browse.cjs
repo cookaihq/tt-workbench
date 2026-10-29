@@ -1,6 +1,6 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async function(app,v){
-  assert.equal(app.vault.getName(),'tannt');const root=app.vault.adapter.getBasePath(),p=app.plugins.plugins['tannt-workbench'];
+  assert.equal(app.vault.getName(),'tannt');const root=app.vault.adapter.getBasePath(),p=app.plugins.plugins['tt-workbench'];
   const report={checkedAt:new Date().toISOString(),entry:'真实工作台目录、正文检索与笔记导航',checks:[]};const check=name=>report.checks.push({name,passed:true});
   const wait=async fn=>{const end=Date.now()+8000;while(Date.now()<end){if(await fn())return;await new Promise(r=>setTimeout(r,60));}throw Error('等待超时');};
   const scope='03.知识/笔记/工作台验收分类',note=scope+'/无属性笔记.md',other='04.资料/文章与视频/工作台验收参考.md';
@@ -20,7 +20,7 @@ module.exports=async function(app,v){
     const old=scope+'/重命名前.md',renamed=scope+'/重命名后.md';if(!app.vault.getAbstractFileByPath(renamed)){await add(old,'重命名验收原文');await app.vault.rename(app.vault.getAbstractFileByPath(old),renamed);}v.navigate(scope);assert.ok(v.listEl.querySelector(`[data-path="${renamed}"]`));check('原生重命名后列表读取实际新位置');
     await v.openNote('apps/workbench/main.js');assert.equal(v.statusEl.dataset.errorCode,'NOT_MARKDOWN');await v.openNote('docs/workbench/work-records.md');assert.equal(v.statusEl.dataset.errorCode,'OUT_OF_SCOPE');
     await v.openNote(note);check('非业务文件入口被拒绝且能返回有效笔记');
-    const leaf=v.leaf;await app.plugins.unloadPlugin('tannt-workbench');await app.plugins.enablePluginAndSave('tannt-workbench');await leaf.setViewState({type:'tannt-workbench',active:true});v=leaf.view;v.navigate(scope);await v.openNote(note);assert.equal(await fs.readFile(path.join(root,note),'utf8'),before);check('重开后目录与正文从真实 Markdown 恢复，不依赖持久索引');report.passed=true;
+    const leaf=v.leaf;await app.plugins.unloadPlugin('tt-workbench');await app.plugins.enablePluginAndSave('tt-workbench');await leaf.setViewState({type:'tt-workbench',active:true});v=leaf.view;v.navigate(scope);await v.openNote(note);assert.equal(await fs.readFile(path.join(root,note),'utf8'),before);check('重开后目录与正文从真实 Markdown 恢复，不依赖持久索引');report.passed=true;
   }catch(e){report.passed=false;report.failure=e.stack;}
   await fs.writeFile(path.join(root,'docs/workbench/verification/10-browse.json'),JSON.stringify(report,null,2)+'\n');return v;
 };

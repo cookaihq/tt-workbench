@@ -5,6 +5,7 @@ const path = require("node:path");
 const { randomUUID, createHash } = require("node:crypto");
 const { IssueError, parseIssue, linesOf, PRIORITIES, TRIAGE, patchFields, appendSection } = require("./issue-format.js");
 const hash = value => createHash("sha256").update(value).digest("hex");
+const runtimeStorage = require('./shared.js').runtimeStorage;
 
 function cleanInput(input) {
   if (!segment(input.feature) || typeof input.title !== "string" || !input.title.trim() || /[\r\n]/.test(input.title) || typeof input.description !== "string") throw new IssueError("INVALID_INPUT", "请填写合法的功能名称、单行标题和 Markdown 描述。");
@@ -75,15 +76,15 @@ class IssueStore {
   }
 
   async withLock(operation) {
-    const run = async () => {
-      const runtime = await this.safe("apps/workbench/data/issues", { directory: true, create: true });
+    const run = () => runtimeStorage.withRuntime(this.root, async () => {
+      const runtime = await runtimeStorage.plain(this.root, runtimeStorage.relative('issues', this.root), { mkdir: true, io: this.io });
       const lock = path.join(runtime, "write.lock"), token = randomUUID();
       const until = Date.now() + 3000; let handle;
       while (!handle) {
         try { handle = await this.io.open(lock, "wx", 0o600); }
         catch (e) {
           if (e.code !== "EEXIST") throw e;
-          if (Date.now() >= until) throw new IssueError("BUSY", "另一个 Issue 保存尚未结束。请稍后重试；若持续出现，请检查 apps/workbench/data/issues/write.lock 中的进程记录。");
+          if (Date.now() >= until) throw new IssueError("BUSY", `另一个 Issue 保存尚未结束。请核对 ${runtime}/write.lock 中的进程记录。`);
           await new Promise(resolve => setTimeout(resolve, 30));
         }
       }
@@ -96,7 +97,7 @@ class IssueStore {
         // Only remove our own transient lock; recoverable operation records are retained.
         try { if (JSON.parse(await this.io.readFile(lock, "utf8")).token === token) await this.io.unlink(lock); } catch {}
       }
-    };
+    }, this.io);
     const next = this.queue.then(run); this.queue = next.catch(() => {}); return next;
   }
 
@@ -230,8 +231,8 @@ class IssueStore {
   async save(relative, expected, proposed, operation, validate = null) {
     return this.withLock(async runtime => {
       if (validate) await validate();
-      const recovery = `apps/workbench/data/issues/operations/${randomUUID()}`;
-      const directory = await this.safe(recovery, { directory: true, create: true });
+      const recovery = runtimeStorage.relative(`issues/operations/${randomUUID()}`, this.root);
+      const directory = await runtimeStorage.plain(this.root, recovery, { mkdir: true, io: this.io });
       let current = "", status = "prepared";
       const record = { ...operation, path: relative, created: new Date().toISOString(), expectedHash: hash(expected), proposedHash: hash(proposed) };
       try {

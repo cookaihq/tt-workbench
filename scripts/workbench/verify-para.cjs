@@ -40,7 +40,7 @@ module.exports=async function(app,options={}){
   v.receiptEl.hidden=true;await submit(input.closest('form'),'material '+directory);await ready(target);assert(!v.receiptEl.hidden&&v.receiptEl.textContent.includes(receipt),'Missing material completion receipt');
  };
  const assertNoDrafts=()=>{
-  for(const leaf of app.workspace.getLeavesOfType('tannt-workbench')){
+  for(const leaf of app.workspace.getLeavesOfType('tt-workbench')){
    const view=leaf.view,dirty=[];
    for(const [label,drafts]of [['inbox',view.inboxDrafts],['project',view.workUI?.drafts],['task',view.taskUI?.drafts],['use',view.workUI?.useDrafts],['issue',view.issueUI?.drafts]])if(drafts?.size)dirty.push(label);
    for(const [label,control]of [['capture title',view.captureTitle],['capture text',view.captureContent],['capture sources',view.captureSources],['project name',view.workUI?.name],['project goal',view.workUI?.goal],['task name',view.taskUI?.name],['task goal',view.taskUI?.goal]])if(control?.value?.trim())dirty.push(label);
@@ -68,7 +68,7 @@ module.exports=async function(app,options={}){
  };
  const retainFixtures=async()=>{
   assert.deepEqual(report.checks,completedChecks);await stage('retain fixtures in archive');await waitForFnsStable('inspect acceptance fixtures');
-  const {documentParts}=require(path.join(root,'.obsidian/plugins/tannt-workbench/shared.js'));
+  const {documentParts}=require(path.join(root,'.obsidian/plugins/tt-workbench/shared.js'));
   const project=`1.项目/${report.fixtureProject}/项目说明.md`,task=`1.项目/${report.fixtureProject}/任务/验证归属与结果/任务说明.md`,resource='3.资源/验收样例/PARA-融合架构/说明.md';
   const archived=project.replace('1.项目/','4.存档/项目/'),archivedTask=task.replace('1.项目/','4.存档/项目/'),archivedResource=resource.replace('3.资源/','4.存档/资源/');
   const current=async(active,stored)=>{const choices=await Promise.all([active,stored].map(async file=>await app.vault.adapter.exists(file)?file:null));const found=choices.filter(Boolean);assert.equal(found.length,1,'Expected exactly one fixture location: '+active);await indexed(found[0]);return found[0];};
@@ -97,14 +97,14 @@ module.exports=async function(app,options={}){
  };
  try{
   if(options.resumeFixtures){
-   assertNoDrafts();plugin=app.plugins.plugins['tannt-workbench'];assert.equal(plugin?.manifest.version,'0.17.0');v=await plugin.openWorkbench();await retainFixtures();
+   assertNoDrafts();plugin=app.plugins.plugins['tt-workbench'];assert.equal(plugin?.manifest.version,'0.17.0');v=await plugin.openWorkbench();await retainFixtures();
    report.completedAt=new Date().toISOString();await save();return {passed:report.passed,checks:report.checks,resumedFixtures:true,previousReport:report.resumeHistory.at(-1).previousReport};
   }
   await stage('check unsaved work before reload');
   assertNoDrafts();
-  if(app.plugins.plugins['tannt-workbench'])await app.plugins.unloadPlugin('tannt-workbench');
-  await app.plugins.loadManifests();await app.plugins.enablePluginAndSave('tannt-workbench');plugin=app.plugins.plugins['tannt-workbench'];assert.equal(plugin.manifest.version,'0.17.0');v=await plugin.openWorkbench();
-  const {documentParts}=require(path.join(root,'.obsidian/plugins/tannt-workbench/shared.js'));
+  if(app.plugins.plugins['tt-workbench'])await app.plugins.unloadPlugin('tt-workbench');
+  await app.plugins.loadManifests();await app.plugins.enablePluginAndSave('tt-workbench');plugin=app.plugins.plugins['tt-workbench'];assert.equal(plugin.manifest.version,'0.17.0');v=await plugin.openWorkbench();
+  const {documentParts}=require(path.join(root,'.obsidian/plugins/tt-workbench/shared.js'));
   v.showFixtures=false;v.refreshList();assert.equal(v.workEntries.filter(i=>i.type==='project').length,2);assert(!v.workEntries.some(i=>i.test_fixture));assert(v.nav.querySelector('[aria-label="打开库根首页"]'));
   for(const label of ['0.收件箱','1.项目','2.领域','3.资源','4.存档'])assert(v.nav.querySelector(`[aria-label="查看${label}"]`));
   report.checks.push('0.17.0 loaded; five roots and homepage; real projects visible, fixtures hidden');await save();
@@ -118,7 +118,7 @@ module.exports=async function(app,options={}){
   v.taskUI.openCreate(project);v.taskUI.name.value='验证归属与结果';v.taskUI.goal.value='能够回查来源、分别更新用途并随项目往返归档。';await submit(v.taskUI.form,'create task');assert.equal(v.taskUI.message.dataset.kind,'saved');
   const task=`1.项目/${name}/任务/验证归属与结果/任务说明.md`;assert.equal(plugin.work.describe(await plugin.reader.read(task)).projectPath,project);
   report.checks.push('Native project form creates without area; task form requires project');await save();
-  const shared=require(path.join(root,'.obsidian/plugins/tannt-workbench/shared.js'));const api=input=>shared.execute(root,{request_id:randomUUID(),privacy:'ordinary',...input});
+  const shared=require(path.join(root,'.obsidian/plugins/tt-workbench/shared.js'));const api=input=>shared.execute(root,{request_id:randomUUID(),privacy:'ordinary',...input});
   await stage('create resource and transfer inbox');const resource=`3.资源/验收样例/PARA-融合架构/说明.md`;await api({action:'create-note',path:resource,content:`# 验收资源\n\n[[${task}]]\n`});await indexed(resource);let res=await plugin.reader.read(resource);await plugin.editor.update(resource,res.content,{fields:{test_fixture:true}});await wait(()=>app.metadataCache.getCache(resource)?.frontmatter?.test_fixture===true,'resource fixture metadata');
   const captured=await api({action:'capture',title:'工作台验收-PARA-分流',content:'本条为验收输入，验证完整分流。'});await wait(()=>app.vault.getAbstractFileByPath(captured.path),'capture');
   const moved=await plugin.links.move(await plugin.reader.read(captured.path),task);assert(!await app.vault.adapter.exists(captured.path));await indexed(moved.sourcePath);assert.equal(documentParts((await plugin.reader.read(moved.sourcePath)).content).fields.type,'note');

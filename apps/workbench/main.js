@@ -17,7 +17,8 @@ let AgentRulesReader, AgentRulesUI;
 let SkillInstallationUI;
 let FnsUI;
 let UpdatesUI;
-const VIEW_TYPE = "tannt-workbench";
+let RuntimeSettingsUI;
+const VIEW_TYPE = "tt-workbench";
 
 class WorkbenchView extends ItemView {
   constructor(leaf, plugin) {
@@ -38,7 +39,7 @@ class WorkbenchView extends ItemView {
   }
 
   getViewType() { return VIEW_TYPE; }
-  getDisplayText() { return "tannt 工作台"; }
+  getDisplayText() { return "tt 工作台"; }
   getIcon() { return "panels-top-left"; }
   getState() { return { path: this.selectedPath, scope: this.pageScope, rulesAgent: this.agentRulesUI?.agent || this.rulesAgent, skillsAgent: this.skillsUI?.agent || this.skillsAgent }; }
 
@@ -84,12 +85,12 @@ class WorkbenchView extends ItemView {
     this.closed = false;
     const root = this.contentEl;
     root.empty();
-    root.addClass("tannt-workbench");
+    root.addClass("tt-workbench");
     const header = root.createDiv({ cls: "tw-header" });
     const brand = header.createDiv({ cls: "tw-brand" });
     const mark = brand.createSpan({ cls: "tw-brandmark" });
     for (let i = 0; i < 4; i++) mark.createEl("i");
-    brand.createEl("strong", { text: "tannt" });
+    brand.createEl("strong", { text: "tt" });
     header.createSpan({ text: "个人学习、研究与工作空间", cls: "tw-tagline" });
     const search = header.createDiv({ cls: "tw-search" });
     setIcon(search.createSpan(), "search");
@@ -97,6 +98,8 @@ class WorkbenchView extends ItemView {
     this.searchInput.addEventListener("input", () => { this.query = this.searchInput.value; this.refreshList(); });
     this.updatesUI = new UpdatesUI(this);
     this.updatesUI.mount(header);
+    this.runtimeSettingsUI = new RuntimeSettingsUI(this);
+    this.runtimeSettingsUI.mount(header);
     this.button(header, "在 Obsidian 独立窗口打开工作台", "独立窗口", () => this.plugin.openWorkbench(true, this.selectedPath, this.getState()));
     const shell = root.createDiv({ cls: "tw-shell" });
     this.nav = shell.createEl("nav", { cls: "tw-nav", attr: { "aria-label": "工作台导航" } });
@@ -625,12 +628,13 @@ class WorkbenchView extends ItemView {
     this.skillsUI?.leave();
     if (this.fnsUI) this.fnsUI.dispose();
     if (this.updatesUI) this.updatesUI.dispose();
+    this.runtimeSettingsUI?.dispose();
     ++this.sequence;
     this.clearBody();
   }
 }
 
-module.exports = class TanntWorkbenchPlugin extends Plugin {
+module.exports = class TTWorkbenchPlugin extends Plugin {
   async onload() {
     if (typeof this.app.vault.adapter.getBasePath !== "function") {
       new Notice("工作台需要桌面端的本地知识库。");
@@ -672,6 +676,8 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
     const { SkillManager } = localRequire("./lib/agent-skills/manager.cjs");
     ({ FnsUI } = localRequire("./fns-ui.js"));
     ({ UpdatesUI } = localRequire("./updates-ui.js"));
+    ({ RuntimeSettingsUI } = localRequire("./runtime-settings-ui.js"));
+    const { RuntimeSettings } = localRequire("./runtime-settings.js");
     const { WorkbenchUpdates } = localRequire("./updates.js");
     this.settings = (await this.loadData()) || {};
     this.updates = new WorkbenchUpdates({ repository: this.settings.updateRepository || "", saveRepository: async repository => { this.settings.updateRepository = repository; await this.saveData(this.settings); }, vault: this.app.vault.adapter.getBasePath(), configDir: this.app.vault.configDir, version: this.manifest.version, appVersion: apiVersion });
@@ -683,16 +689,17 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
     const { applyWorkbenchExclusions, inspectWorkbenchExclusions, codeDirectories } = localRequire("./lib/fns/workbench-scope.cjs");
     const { validateScope } = localRequire("./lib/fns/rules.cjs");
     this.configureCodeSync = () => applyWorkbenchExclusions(this.fns);
-    this.codeSyncDirectories = codeDirectories(this.app.vault.configDir);
+    Object.defineProperty(this, 'codeSyncDirectories', { get: () => codeDirectories(this.app.vault.configDir, this.app.vault.adapter.getBasePath()) });
     this.inspectCodeSync = () => inspectWorkbenchExclusions(this.fns);
     this.updates.beforeInstall = async () => {
       const report = await this.fns.inspect();
       if (report.device.status === "missing-config") return;
       if (!report.local) throw Object.assign(new Error("请先在 FNS 配置同步页面核对本机配置并迁回旧链接。"), { code: "FNS_NOT_READY" });
-      validateScope(report.local.rules, codeDirectories(this.app.vault.configDir));
+      validateScope(report.local.rules, codeDirectories(this.app.vault.configDir, this.app.vault.adapter.getBasePath()));
       if (report.runtime.enabled && !report.runtime.loaded) throw Object.assign(new Error("FNS 尚未加载磁盘中的排除规则，请先重新加载 FNS。"), { code: "FNS_NOT_READY" });
     };
     this.issues = new IssueStore(this.settings.developmentRoot || this.app.vault.adapter.getBasePath());
+    this.runtimeSettings = new RuntimeSettings(this);
     this.agentRules = new AgentRulesReader(this.app.vault.adapter.getBasePath(), { sourceRoot: this.settings.rulesRoot, sourceDirectory: this.settings.rulesSource });
     this.setRulesSource = async sourceDirectory => {
       const reader = new AgentRulesReader(this.app.vault.adapter.getBasePath(), { sourceDirectory });
@@ -718,15 +725,18 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
     this.attachments = new AttachmentStore(this);
     try { this.reader.assertVault(); } catch (error) { new Notice(error.message); return; }
     this.registerView(VIEW_TYPE, leaf => new WorkbenchView(leaf, this));
-    this.addRibbonIcon("panels-top-left", "打开 tannt 工作台", () => this.openWorkbench());
+    // Restore saved layouts from the previous ID; the next save uses VIEW_TYPE.
+    this.registerView("tannt-workbench", leaf => new WorkbenchView(leaf, this));
+    this.addRibbonIcon("panels-top-left", "打开 tt 工作台", () => this.openWorkbench());
     this.addCommand({ id: "open-workbench", name: "打开工作台", callback: () => this.openWorkbench() });
     this.addCommand({ id: "open-workbench-window", name: "在独立窗口打开工作台", callback: () => this.openWorkbench(true) });
     this.addCommand({ id: "open-issues", name: "打开开发 Issue", callback: async () => { const view = await this.openWorkbench(); view.navigate("@issues"); } });
     this.addCommand({ id: "open-agent-rules", name: "打开 Agent 规则", callback: async () => { const view = await this.openWorkbench(); view.navigate("@agent-rules"); } });
     this.addCommand({ id: "open-skill-installation", name: "打开 Skill 安装", callback: async () => { const view = await this.openWorkbench(); view.navigate("@skills"); } });
     this.addCommand({ id: "open-fns-sync", name: "打开 FNS 配置同步", callback: async () => { const view = await this.openWorkbench(); view.navigate("@fns"); } });
+    this.addCommand({ id: "runtime-storage", name: "设置运行数据位置", callback: async () => { const view = await this.openWorkbench(); view.runtimeSettingsUI.open(); } });
     this.addCommand({ id: "check-workbench-updates", name: "检查工作台更新", callback: async () => { const view = await this.openWorkbench(); view.updatesUI.open(); void this.updates.check(); } });
-    this.registerObsidianProtocolHandler("tannt-capture", async params => {
+    const capture = async params => {
       if (params.target !== this.app.vault.getName() || typeof params.source !== "string" || !/^https?:\/\//i.test(params.source)) { new Notice("剪藏目标或来源无效，请从网页重新发起。"); return; }
       if (typeof params.text !== "string" || !params.text.trim() || params.text.length > 12000) { new Notice("未收到有效选区；请缩小选区后重试，原网页内容未保存。"); return; }
       const view = await this.openWorkbench();
@@ -734,7 +744,9 @@ module.exports = class TanntWorkbenchPlugin extends Plugin {
       view.captureTitle.value = params.title || ""; view.captureContent.value = params.text; view.captureSources.value = params.source;
       view.captureEntry = "browser"; view.captureAttempt = null; view.captureButton.click();
       view.captureStatus.setText("已取得网页选区与来源，点击保存后写入收件箱。");
-    });
+    };
+    this.registerObsidianProtocolHandler("tt-capture", capture);
+    this.registerObsidianProtocolHandler("tannt-capture", capture);
     this.agentBridge = new AgentBridge(this);
     this.register(() => { void this.agentBridge.stop(); });
     if (this.app.plugins.plugins["fast-note-sync"]) {

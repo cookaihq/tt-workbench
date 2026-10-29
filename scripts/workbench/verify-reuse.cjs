@@ -1,6 +1,6 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async function(app,v){
-  assert.equal(app.vault.getName(),'tannt'); const root=app.vault.adapter.getBasePath(),p=app.plugins.plugins['tannt-workbench'];
+  assert.equal(app.vault.getName(),'tannt'); const root=app.vault.adapter.getBasePath(),p=app.plugins.plugins['tt-workbench'];
   const report={checkedAt:new Date().toISOString(),entry:'Obsidian 原生编辑器、核心 Templates 和真实工作台链接',checks:[],samples:[]};
   const wait=async f=>{const until=Date.now()+8000;while(Date.now()<until){if(await f())return;await new Promise(r=>setTimeout(r,60));}throw Error('等待实际文件超时')};
   const check=name=>report.checks.push({name,passed:true});

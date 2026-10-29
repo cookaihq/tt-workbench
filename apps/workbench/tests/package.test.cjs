@@ -51,9 +51,9 @@ test('帮助和只读检查不安装；Skill 注册独立执行并拒绝覆盖�
   const installer = path.join(result.target, 'scripts/agent-skills/install.mjs');
   const registered = run(installer, ['--vault', root, '--agent', 'codex'], undefined, root);
   assert.equal(registered.status, 0, registered.stderr);
-  assert.equal(await fs.realpath(path.join(root, '.agents/skills/tannt-capture')), path.join(result.target, 'skills/tannt-capture'));
+  assert.equal(await fs.realpath(path.join(root, '.agents/skills/tt-capture')), path.join(result.target, 'skills/tt-capture'));
   assert.equal(run(installer, ['--vault', root, '--agent', 'codex', '--check'], undefined, root).status, 0);
-  const entry = path.join(root, '.agents/skills/tannt-capture'); await fs.unlink(entry); await fs.mkdir(entry);
+  const entry = path.join(root, '.agents/skills/tt-capture'); await fs.unlink(entry); await fs.mkdir(entry);
   await fs.writeFile(path.join(entry, 'keep.txt'), 'mine');
   assert.equal(run(installer, ['--vault', root, '--agent', 'codex'], undefined, root).status, 1);
   assert.equal(await fs.readFile(path.join(entry, 'keep.txt'), 'utf8'), 'mine');

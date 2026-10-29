@@ -17,7 +17,7 @@ try {
     if (!values.check && values.action !== 'install' && !values.skill?.length) throw Error('修复或移除须用 --skill 明确选择入口。');
     if (values['migrate-from'] && (!path.isAbsolute(values['migrate-from']) || values.action !== 'repair' && !values.check)) throw Error('--migrate-from 须为已核实旧目录的绝对路径，且只用于检查或显式 repair。');
     const vault = target.resolveVault(values.vault), configDir = target.configDirectory(values['config-dir']);
-    const packageRoot = path.join(vault, configDir, 'plugins/tannt-workbench');
+    const packageRoot = path.join(vault, configDir, 'plugins/tt-workbench');
     const manager = new skills.SkillManager({ vault, packageRoot, configDir, migrateFrom: values['migrate-from'] });
     const catalog = await manager.catalog();
     if (values.skill && (new Set(values.skill).size !== values.skill.length || values.skill.some(n => !catalog.names.includes(n)))) throw Error('--skill 含重复或非活动名称。');

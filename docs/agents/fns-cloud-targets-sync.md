@@ -1,5 +1,7 @@
 # 网盘目标配置的 FNS 同步维护
 
+本文中的 `<运行目录>` 按[本机运行记录](../rules/writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
+
 适用于配置、检查网盘目标同步和接入新设备。配置字段与账号选择遵守[网盘规则](../rules/cloud-files.md)，唯一配置源是 `config/cloud-storage-targets.jsonc`；它只保存非敏感目标，授权凭据在各设备的库外档案。
 
 读取或修改 FNS `data.json` 前，先读取并遵守[FNS 按设备配置](fns-device-config.md)。本机配置应为插件目录中的普通文件；旧链接先按获准范围迁回，写入和旧补丁退役不能沿遗留链接修改或覆盖另一设备配置。
@@ -16,7 +18,7 @@
 
 FNS 的“增加目录同步”若残留 `.env`，移除该单项，保留其他目录、白名单、排除规则和开关；不要把整个库根或 `config/` 填进隐藏目录列表。远端旧 `.env` 记录不会因本机配置更改自动消失；本次不清空远端配置。
 
-旧单文件补丁的只读检查命令为 `node scripts/fns/env-sync-support.mjs --check`。获准退役时，先在 Obsidian 的第三方插件界面关闭 FNS，确认插件 ID 已退出启用清单，再运行 `--retire`，最后重新启用。脚本先核验共享 JSONC，按完整源码哈希恢复已识别的原版，仅移除旧 `.env` 条目；遇到未知构建或其他单文件目标时停止，不覆盖。恢复资料保存在已排除 FNS 的 `apps/workbench/data/fns-env-support/`；其他设备各自核验，原 `--apply` 不再安装补丁。
+旧单文件补丁的只读检查命令为 `node scripts/fns/env-sync-support.mjs --check`。获准退役时，先在 Obsidian 的第三方插件界面关闭 FNS，确认插件 ID 已退出启用清单，再运行 `--retire`，最后重新启用。脚本先核验共享 JSONC，按完整源码哈希恢复已识别的原版，仅移除旧 `.env` 条目；遇到未知构建或其他单文件目标时停止，不覆盖。恢复资料保存在已排除 FNS 的 `<运行目录>/fns-env-support/`；其他设备各自核验，原 `--apply` 不再安装补丁。
 
 ## 验证范围
 

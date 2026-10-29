@@ -31,7 +31,7 @@ class AgentRulesUI {
   enter() {
     this.actions.hidden = false; this.root.hidden = false;
     const v = this.view;
-    v.pageEyebrow.setText("TANNT / AGENT RULES"); v.pageTitle.setText("Agent 规则");
+    v.pageEyebrow.setText("TT / AGENT RULES"); v.pageTitle.setText("Agent 规则");
     v.pageDescription.setText("选择正式规则源，只读浏览正文并核对本机入口。");
     if (!this.visible) { this.visible = true; void this.refresh(); }
   }

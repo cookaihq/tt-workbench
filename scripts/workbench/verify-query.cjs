@@ -1,6 +1,6 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async function(app,v){
- assert.equal(app.vault.getName(),'tannt');const p=app.plugins.plugins['tannt-workbench'],root=app.vault.adapter.getBasePath();
+ assert.equal(app.vault.getName(),'tannt');const p=app.plugins.plugins['tt-workbench'],root=app.vault.adapter.getBasePath();
  const task='02.独立任务/工作台验收-研究会话切换/任务说明.md';
  const before=await p.reader.read(task);await p.work.update(before,{status:'in_progress',progress:'查询 Prompt 验收：这段是最新保存进度。',next_step:'在新会话核查可访问的执行证据。'});
  const savedSnapshot=(await p.reader.read(task)).content;v.pageScope='@tasks';await v.openNote(task);const buttons=[...v.bodyEl.querySelectorAll('[role=tab]')];assert.equal(buttons.length,3);buttons[1].click();assert.equal(v.bodyEl.querySelector('[aria-label="相关笔记"][role=tabpanel]').hidden,false);buttons[2].click();

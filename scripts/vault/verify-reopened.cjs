@@ -8,8 +8,8 @@ module.exports = async function(app, view) {
   assert.equal(app.vault.getName(), 'tannt');
   const root = app.vault.adapter.getBasePath();
   const out = path.join(root, '.scratch/vault-rules-and-skills/verification');
-  const shared = require(path.join(root, '.obsidian/plugins/tannt-workbench/vault-lib'));
-  const report = { started: new Date().toISOString(), version: app.plugins.plugins['tannt-workbench'].manifest.version, records: [] };
+  const shared = require(path.join(root, '.obsidian/plugins/tt-workbench/vault-lib'));
+  const report = { started: new Date().toISOString(), version: app.plugins.plugins['tt-workbench'].manifest.version, records: [] };
   const read = relative => fs.readFile(path.join(root, relative));
   try {
     assert.ok(!view.captureContent?.value && !view.inboxDrafts?.size && !view.workUI?.drafts?.size && !view.taskUI?.drafts?.size && !view.issueUI?.drafts?.size && !view.issueUI?.createDraft, 'preserve existing drafts');

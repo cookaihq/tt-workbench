@@ -80,7 +80,7 @@ Plugin 的目录结构不决定使用场景或 Skill 划分，也不要求所有
 
 ## 实施状态与待定事项
 
-本决策已接受，用户授权实施的首批 01—04 已完成。共同规则已迁至 [docs/rules/](../rules/README.md)，逐条去向见[迁移记录](../../.scratch/vault-rules-and-skills/rule-migration.md)。独立文件模块、`tannt-capture`、`tannt-update-note` 与工作台 0.15.0 已安装，模块与真实入口通过；插件关闭、当前库关闭和 Obsidian 完全退出时的独立操作分别通过，重开后的显示与原文件链接已核对。Codex 为已验证宿主，Claude Code 仅标准发现通过；具体支持范围以[实施记录](../../.scratch/vault-rules-and-skills/verification/README.md)为准。
+本决策已接受，用户授权实施的首批 01—04 已完成。共同规则已迁至 [docs/rules/](../rules/README.md)，逐条去向见[迁移记录](../../.scratch/vault-rules-and-skills/rule-migration.md)。独立文件模块、`tt-capture`、`tt-update-note` 与工作台 0.15.0 已安装，模块与真实入口通过；插件关闭、当前库关闭和 Obsidian 完全退出时的独立操作分别通过，重开后的显示与原文件链接已核对。Codex 为已验证宿主，Claude Code 仅标准发现通过；具体支持范围以[实施记录](../../.scratch/vault-rules-and-skills/verification/README.md)为准。
 
 首批通过项目级发现目录接入，不发布 Plugin。后续按实际需要决定创建项目/任务、整理经验等场景的 Skill 边界与 Plugin 打包方式。旧业务文件不批量迁移或重命名；将来具体规则变化需要迁移时单独确定范围。
 

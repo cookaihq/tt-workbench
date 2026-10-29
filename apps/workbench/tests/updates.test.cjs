@@ -10,14 +10,14 @@ const { normalize, validateScope } = require('../../../lib/fns/rules.cjs');
 const { matches } = require('../../../lib/fns/legacy-rules.cjs');
 
 function bundle(version, extra = {}) {
-  const files = new Map(Object.entries({ 'manifest.json': JSON.stringify({ id: 'tannt-workbench', version, minAppVersion: '1.8.7' }), 'main.js': `module.exports = ${JSON.stringify(version)};`, 'styles.css': 'body {}', 'updates.js': '// updater', ...extra }).map(([name, text]) => [name, Buffer.from(text)]));
-  return { files, release: { schema: 1, id: 'tannt-workbench', version, files: Object.fromEntries([...files].map(([name, bytes]) => [name, packages.hash(bytes)])) } };
+  const files = new Map(Object.entries({ 'manifest.json': JSON.stringify({ id: 'tt-workbench', version, minAppVersion: '1.8.7' }), 'main.js': `module.exports = ${JSON.stringify(version)};`, 'styles.css': 'body {}', 'updates.js': '// updater', ...extra }).map(([name, text]) => [name, Buffer.from(text)]));
+  return { files, release: { schema: 1, id: 'tt-workbench', version, files: Object.fromEntries([...files].map(([name, bytes]) => [name, packages.hash(bytes)])) } };
 }
 async function fixture(t) {
   const base = path.resolve(__dirname, '../../../tmp/update-tests'); await fs.mkdir(base, { recursive: true });
   const root = await fs.mkdtemp(path.join(base, 'different-vault-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
-  const configDir = 'custom-settings', target = path.join(root, configDir, 'plugins/tannt-workbench');
+  const configDir = 'custom-settings', target = path.join(root, configDir, 'plugins/tt-workbench');
   await packages.installPackage(bundle('0.21.0', { 'old.js': '// old' }), { vault: root, configDir });
   await fs.writeFile(path.join(root, 'note.md'), 'unchanged');
   let latest, id = 0; const assets = new Map(), requests = [];
@@ -25,7 +25,7 @@ async function fixture(t) {
     const releaseId = ++id, bundleId = ++id;
     const encoded = packages.encodeBundle(data);
     assets.set(releaseId, Buffer.from(JSON.stringify(data.release))); assets.set(bundleId, encoded);
-    latest = { draft: false, prerelease: false, assets: [{ id: releaseId, name: 'release.json', size: assets.get(releaseId).length }, { id: bundleId, name: 'tannt-workbench.bundle.json.gz', size: encoded.length }] };
+    latest = { draft: false, prerelease: false, assets: [{ id: releaseId, name: 'release.json', size: assets.get(releaseId).length }, { id: bundleId, name: 'tt-workbench.bundle.json.gz', size: encoded.length }] };
     return { releaseId, bundleId, encoded };
   };
   const request = async url => {
@@ -70,7 +70,7 @@ test('本机修改和并发安装锁均保留旧插件', async t => {
   await fs.writeFile(path.join(h.target, 'main.js'), '// local edit');
   assert.match((await h.service.install()).message, /本机修改/);
   assert.equal(await fs.readFile(path.join(h.target, 'main.js'), 'utf8'), '// local edit');
-  const lock = path.join(path.dirname(h.target), 'tannt-workbench.install-lock'); await fs.writeFile(lock, 'busy');
+  const lock = path.join(path.dirname(h.target), 'tt-workbench.install-lock'); await fs.writeFile(lock, 'busy');
   await fs.writeFile(path.join(h.target, 'main.js'), bundle('0.21.0').files.get('main.js'));
   await h.service.check(); assert.match((await h.service.install()).message, /安装锁/);
   assert.equal(await fs.readFile(lock, 'utf8'), 'busy');
@@ -81,25 +81,25 @@ test('拒绝损坏包、越界路径、本机数据覆盖和不兼容版本', as
   const traversal = bundle('0.22.0'); traversal.release.files['../escape'] = packages.hash(Buffer.from('bad'));
   h.publish(traversal); assert.equal((await h.service.check()).kind, 'error');
   h.publish(bundle('0.22.0', { 'data.json': '{}' })); assert.equal((await h.service.check()).kind, 'error');
-  h.publish(bundle('0.22.0', { 'manifest.json': JSON.stringify({ id: 'tannt-workbench', version: '0.22.0', minAppVersion: '2.0.0' }) }));
+  h.publish(bundle('0.22.0', { 'manifest.json': JSON.stringify({ id: 'tt-workbench', version: '0.22.0', minAppVersion: '2.0.0' }) }));
   await h.service.check(); assert.match((await h.service.install()).message, /2.0.0/);
   assert.equal(JSON.parse(await fs.readFile(path.join(h.target, 'manifest.json'))).version, '0.21.0');
 });
 
 test('代码排除保留设备设置，重复设置无变化，白名单不能覆盖代码', () => {
-  const config = { apiToken: 'synthetic', configSyncOtherDirs: '[{"pattern":".agents"}]', syncExcludeFolders: '[{"pattern":"apps/workbench/data/","caseSensitive":true}]', syncExcludeWhitelist: '' };
+  const config = { apiToken: 'synthetic', configSyncOtherDirs: '[{"pattern":".agents"}]', syncExcludeFolders: '[{"pattern":".system/.workbench-runtime/","caseSensitive":true}]', syncExcludeWhitelist: '' };
   const result = excludeWorkbenchCode(config);
   assert.equal(result.config.apiToken, config.apiToken); assert.equal(result.config.configSyncOtherDirs, config.configSyncOtherDirs);
   const rules = normalize(result.config);
   validateScope(rules, codeDirectories());
   for (const directory of codeDirectories()) for (const item of [directory, directory + '/file.js']) assert.ok(rules.syncExcludeFolders.some(rule => matches(item, rule)), item);
   assert.equal(excludeWorkbenchCode(result.config).added.length, 0);
-  assert.throws(() => excludeWorkbenchCode({ ...config, syncExcludeWhitelist: '[{"pattern":"apps/.*"}]' }), { code: 'PROTECTED_SCOPE' });
+  assert.throws(() => excludeWorkbenchCode({ ...config, syncExcludeWhitelist: '[{"pattern":".system/.workbench-runtime/.*"}]' }), { code: 'PROTECTED_SCOPE' });
 });
 
 test('应用旧 FNS 发布不能撤销已经配置的工作台代码排除', async () => {
   const { FnsSyncService } = require('../../../lib/fns/sync.cjs');
-  const old = { syncExcludeFolders: '[{"pattern":"apps/workbench/data/"},{"pattern":"config/fns-config/"}]' };
+  const old = { syncExcludeFolders: '[{"pattern":".system/.workbench-runtime/"},{"pattern":"config/fns-config/"}]' };
   const local = { rules: normalize(excludeWorkbenchCode(old).config) };
   const service = new FnsSyncService({ vault: process.cwd(), runtime: {} });
   await assert.rejects(service.writeRules({}, local, {}, { rules: normalize(old) }), { code: 'PROTECTED_SCOPE' });
@@ -110,20 +110,21 @@ test('打开排除状态检查即读取全部目录，父目录覆盖和本机�
   const service = { options: {}, local: async () => ({ rules: normalize(config) }), runtime: { inspect: async () => ({ loaded: true, settings: config }) } };
   const report = await inspectWorkbenchExclusions(service);
   assert.equal(report.status, 'configured'); assert.equal(report.configured, true);
-  assert.equal(report.directories.length, 3); assert.ok(report.directories.every(item => item.excluded));
-  assert.equal(report.directories.at(-1).path, '.obsidian/plugins/tannt-workbench');
+  assert.ok(report.directories.every(item => item.excluded));
+  for (const directory of ['.obsidian/plugins/tannt-workbench', '.obsidian/plugins/tannt-workbench-recovery', '.obsidian/plugins/tt-workbench', '.obsidian/plugins/tt-workbench-recovery']) assert.ok(report.directories.some(item => item.path === directory));
+  assert.equal(report.directories.at(-1).path, '.obsidian/plugins/tt-workbench');
 });
 
 test('仅部分目录排除时列出缺项，白名单覆盖不能显示为已设置', async () => {
-  const config = { syncExcludeFolders: '[{"pattern":"apps/workbench/"}]' };
+  const config = { syncExcludeFolders: '[{"pattern":".system/.workbench-runtime/"}]' };
   const service = { options: {}, local: async () => ({ rules: normalize(config) }), runtime: { inspect: async () => { throw Error('not needed'); } } };
   const report = await inspectWorkbenchExclusions(service);
   assert.equal(report.status, 'needs-setup'); assert.equal(report.canConfigure, true);
-  assert.deepEqual(report.directories.filter(item => item.excluded).map(item => item.path), ['apps/workbench/data']);
+  assert.deepEqual(report.directories.filter(item => item.excluded).map(item => item.path), ['.system/.workbench-runtime']);
   const complete = excludeWorkbenchCode({}).config;
-  service.local = async () => ({ rules: normalize({ ...complete, syncExcludeWhitelist: '[{"pattern":"apps/.*"}]' }) });
+  service.local = async () => ({ rules: normalize({ ...complete, syncExcludeWhitelist: '[{"pattern":".system/.workbench-runtime/.*"}]' }) });
   const conflict = await inspectWorkbenchExclusions(service);
-  assert.equal(conflict.status, 'needs-setup'); assert.equal(conflict.directories.find(item => item.path === 'apps/workbench/data').excluded, false);
+  assert.equal(conflict.status, 'needs-setup'); assert.equal(conflict.directories.find(item => item.path === '.system/.workbench-runtime').excluded, false);
 });
 
 test('配置已保存但 FNS 未启用或仍加载旧规则时显示待生效，自定义配置目录正确', async () => {
@@ -131,7 +132,7 @@ test('配置已保存但 FNS 未启用或仍加载旧规则时显示待生效，
   const service = { options: { configDir }, local: async () => ({ rules: normalize(config) }), runtime: { inspect: async () => ({ loaded: false }) } };
   const stopped = await inspectWorkbenchExclusions(service);
   assert.equal(stopped.configured, true); assert.equal(stopped.status, 'pending');
-  assert.equal(stopped.directories.at(-1).path, 'obsidian-settings/plugins/tannt-workbench');
+  assert.equal(stopped.directories.at(-1).path, 'obsidian-settings/plugins/tt-workbench');
   service.runtime.inspect = async () => ({ loaded: true, settings: {} });
   assert.equal((await inspectWorkbenchExclusions(service)).status, 'pending');
   service.runtime.inspect = async () => ({ loaded: true, settings: config });

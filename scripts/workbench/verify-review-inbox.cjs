@@ -9,7 +9,7 @@ module.exports = async function verify(app) {
   const report = { checkedAt: new Date().toISOString(), entry: '真实 Obsidian 工作台表单、状态筛选和磁盘读回', checks: [] };
   const check = name => report.checks.push({ name, passed: true });
   const wait = async (predicate, label) => { const end=Date.now()+10000; while(Date.now()<end){if(await predicate())return;await new Promise(r=>setTimeout(r,80));}throw new Error('等待超时：'+label); };
-  let plugin = app.plugins.plugins['tannt-workbench'];
+  let plugin = app.plugins.plugins['tt-workbench'];
   let view = await plugin.openWorkbench();
   const fields = raw => plugin.inbox.parseYaml(plugin.inbox.getFrontMatterInfo(raw).frontmatter);
   const read = p => fs.readFile(path.join(root,p),'utf8');
@@ -67,7 +67,7 @@ module.exports = async function verify(app) {
     const conflictRaw=await read(conflictPath);assert.match(conflictRaw,/旧界面拟追加/);assert.match(conflictRaw,/workbench-conflict/);assert.ok(c.status.textContent.includes(conflictPath));report.conflict=conflictPath;
     check('其他编辑器修改后旧表单保存显示冲突，当前原文和拟保存完整版本分别持久保留');
     view.inboxDrafts.delete(samplePath);await view.openNote(samplePath);
-    await app.plugins.unloadPlugin('tannt-workbench');await app.plugins.enablePluginAndSave('tannt-workbench');plugin=app.plugins.plugins['tannt-workbench'];view=await plugin.openWorkbench();view.pageScope='01.收件箱';view.refreshList();await view.openNote(samplePath);
+    await app.plugins.unloadPlugin('tt-workbench');await app.plugins.enablePluginAndSave('tt-workbench');plugin=app.plugins.plugins['tt-workbench'];view=await plugin.openWorkbench();view.pageScope='01.收件箱';view.refreshList();await view.openNote(samplePath);
     assert.equal(await read(samplePath),external);assert.ok(view.bodyEl.textContent.includes('外部编辑器'));assert.equal(view.inboxFilter,'pending');
     check('重载工作台恢复真实保存结果，冲突副本不作为新收件箱记录');
     const conflictEntry=view.inboxEntries.find(e=>e.path===conflictPath);if(conflictEntry)assert.equal(conflictEntry.kind,'auxiliary');

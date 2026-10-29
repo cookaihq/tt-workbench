@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 
 module.exports=async function(app,view){
   assert.equal(app.vault.getName(),'tannt');
-  const plugin=app.plugins.plugins['tannt-workbench'],ui=view.taskUI,root=app.vault.adapter.getBasePath();
+  const plugin=app.plugins.plugins['tt-workbench'],ui=view.taskUI,root=app.vault.adapter.getBasePath();
   const report={checkedAt:new Date().toISOString(),entry:'实际工作台任务表单、项目往返与原笔记读写',checks:[],samples:[]};
   const check=name=>report.checks.push({name,passed:true});
   const read=p=>fs.readFile(path.join(root,p),'utf8');
@@ -47,7 +47,7 @@ module.exports=async function(app,view){
     await view.openNote(p);view.noteInfoEl.querySelector('button').click();await wait(()=>view.selectedPath===project.path&&view.bodyEl.textContent.includes('项目任务'));const taskButton=[...view.bodyEl.querySelectorAll('.tw-related-note')].find(b=>b.textContent.includes('准备培训案例'));assert.ok(taskButton);taskButton.click();await wait(()=>view.selectedPath===p&&!!view.bodyEl.querySelector('.tw-task-form'));
     ui.status='cancelled';ui.area='企业培训';ui.group='企业/工作台验收企业';ui.project=project.path;view.refreshList();assert.ok(view.listEl.querySelector(`[data-path="${p}"]`));
     check('项目任务往返与领域、企业、项目、历史状态筛选可用');
-    const expected=await read(p),leaf=view.leaf;await app.plugins.unloadPlugin('tannt-workbench');await app.plugins.enablePluginAndSave('tannt-workbench');await leaf.setViewState({type:'tannt-workbench',active:true});view=leaf.view;view.taskUI.status='all';view.navigate('@tasks');await view.openNote(p);assert.equal(await read(p),expected);assert.equal(view.bodyEl.querySelector('.tw-task-form textarea').value,'失败后保留的进度');
+    const expected=await read(p),leaf=view.leaf;await app.plugins.unloadPlugin('tt-workbench');await app.plugins.enablePluginAndSave('tt-workbench');await leaf.setViewState({type:'tt-workbench',active:true});view=leaf.view;view.taskUI.status='all';view.navigate('@tasks');await view.openNote(p);assert.equal(await read(p),expected);assert.equal(view.bodyEl.querySelector('.tw-task-form textarea').value,'失败后保留的进度');
     check('插件重载后任务内容与进度恢复');report.passed=true;
   }catch(error){report.passed=false;report.failure=error.stack;}
   finally{app.vault.process=process;if(ui.dialog.open)ui.dialog.close();await fs.writeFile(path.join(root,'docs/workbench/verification/06-native-tasks.json'),JSON.stringify(report,null,2)+'\n');}

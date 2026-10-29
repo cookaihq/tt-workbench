@@ -1,6 +1,8 @@
 # 工作台 FNS 配置同步
 
-从左侧「系统 → FNS 配置同步」或命令面板「tannt 工作台：打开 FNS 配置同步」进入。页面采用 C「差异工作区」，展示本机与最近接收的权威版本。共同语义见[发布与应用规则](../rules/fns-config-sync.md)。
+本文中的 `<运行目录>` 按[本机运行记录](../rules/writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
+
+从左侧「系统 → FNS 配置同步」或命令面板「tt 工作台：打开 FNS 配置同步」进入。页面采用 C「差异工作区」，展示本机与最近接收的权威版本。共同语义见[发布与应用规则](../rules/fns-config-sync.md)。
 
 ## 使用流程
 
@@ -28,7 +30,7 @@
 
 一次发布对象只包含来源设备完整配置快照和 `config/fns-config/authority.jsonc`。接收读取 Git 对象，不 checkout、不改用户索引，不把收到的完整文件覆盖到本机。版本记录中的指纹只覆盖四组规则。
 
-本机记录保存在 `apps/workbench/data/fns-sync/`，包括最近接收记录、待推送记录、应用回执及 `operations/<标识>/` 恢复材料。备份含本机完整配置，保持 Git 忽略、FNS 排除和本机访问权限，不复制为其他设备的运行记录。回执绑定设备身份和 Obsidian 配置目录。明确恢复时程序会核对遗留锁的进程已经退出；活进程、权限不足、记录损坏或后续配置变化均停止，保留现场。
+本机记录保存在 `<运行目录>/fns-sync/`，包括最近接收记录、待推送记录、应用回执及 `operations/<标识>/` 恢复材料。备份含本机完整配置，保持 Git 忽略、FNS 排除和本机访问权限，不复制为其他设备的运行记录。回执绑定设备身份和 Obsidian 配置目录。明确恢复时程序会核对遗留锁的进程已经退出；活进程、权限不足、记录损坏或后续配置变化均停止，保留现场。
 
 说明草稿在 `state.json` 的 `notesDraft` 中；发布后写入专用分支 `authority.jsonc` 的 `notes`。发布格式 `schema: 2` 增加说明，仍读取 `schema: 1` 的历史版本。每条说明用 `field`、`pattern`、`caseSensitive` 对应规则，正文为 `reason`；规则指纹继续仅覆盖四组 FNS 规则。
 

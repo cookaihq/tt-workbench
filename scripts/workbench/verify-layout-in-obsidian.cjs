@@ -6,7 +6,7 @@ module.exports = async function verifyLayout(app, existingView) {
   assert.equal(app.vault.getName(), 'tannt');
   const root = app.vault.adapter.getBasePath();
   const out = path.join(root, 'docs/workbench/verification');
-  const plugin = app.plugins.plugins['tannt-workbench'];
+  const plugin = app.plugins.plugins['tt-workbench'];
   const view = existingView || await plugin.openWorkbench(true, '欢迎.md');
   const win = view.contentEl.ownerDocument.defaultView;
   const browser = win.require('electron').remote.getCurrentWindow();

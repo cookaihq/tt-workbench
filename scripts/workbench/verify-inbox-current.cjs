@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 
 module.exports=async function(app,view){
   assert.equal(app.vault.getName(),'tannt');
-  const root=app.vault.adapter.getBasePath(),plugin=app.plugins.plugins['tannt-workbench'];
+  const root=app.vault.adapter.getBasePath(),plugin=app.plugins.plugins['tt-workbench'];
   const report={checkedAt:new Date().toISOString(),entry:'布局 A 收件箱真实表单回归',checks:[]};
   const check=name=>report.checks.push({name,passed:true});
   const wait=async fn=>{const end=Date.now()+8000;while(Date.now()<end){if(await fn())return;await new Promise(r=>setTimeout(r,50));}throw Error('操作等待超时');};
@@ -35,8 +35,8 @@ module.exports=async function(app,view){
     view.inboxDrafts.delete(sample);view.inboxFilter='pending';view.navigate('01.收件箱');await view.openNote(sample);
     const project=plugin.reader.list().find(f=>f.path.includes('工作台验收-第一场培训/项目说明.md')).path;
     const expectedProject=await read(project),expectedInbox=await read(sample),leaf=view.leaf;
-    await app.plugins.unloadPlugin('tannt-workbench');await app.plugins.enablePluginAndSave('tannt-workbench');
-    await leaf.setViewState({type:'tannt-workbench',active:true});view=leaf.view;
+    await app.plugins.unloadPlugin('tt-workbench');await app.plugins.enablePluginAndSave('tt-workbench');
+    await leaf.setViewState({type:'tt-workbench',active:true});view=leaf.view;
     await view.openNote(project);assert.equal(await read(project),expectedProject);assert.ok(view.bodyEl.querySelector('.tw-work-form'));
     view.navigate('01.收件箱');await view.openNote(sample);assert.equal(await read(sample),expectedInbox);assert.ok(view.bodyEl.textContent.includes('布局 A 验收期间由原笔记入口追加。'));
     check('卸载并重载插件后，项目状态与收件箱新内容均从真实文件恢复');

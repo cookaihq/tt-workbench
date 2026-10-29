@@ -1,5 +1,7 @@
 # Agent 业务文件操作
 
+本文中的 `<运行目录>` 按[本机运行记录](../rules/writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
+
 从已安装包或源码仓库调用 `node "<软件根>/scripts/vault/write.mjs" --vault "<知识库绝对路径>"`，通过 stdin 传一个 JSON 对象。自定义配置目录追加 `--config-dir "<实际目录>"`；软件位置与目标库见[路径约定](package-layout.md)。脚本直接读写文件，无需 Obsidian。其他工具可按[共同规则](../rules/README.md)执行同一任务。
 
 写入前判断用户授权和隐私范围。每次新操作用 `crypto.randomUUID()` 生成 `request_id`，设置 `privacy: "ordinary"`；相同输入重试保留 ID，修改输入后更换。JSON 不通过 shell 参数拼接正文。CLI 设置 UTF-8 流解码，中文跨字节块也不拆坏。
@@ -25,7 +27,7 @@
 
 用户明确要求创建或归入任务后，先按[任务资料归属](../rules/projects-and-tasks.md#任务资料归属)检查原记录、附件与共享引用。新任务先调用 `create-task`，记录返回的 `path`；已有任务不重复创建。读取源记录和任务说明的完整原文，再提交：
 
-迁移清单含网盘托管文件或其 YAML 替代文件时，先读[网盘托管规则](../rules/cloud-files.md)，使用 `tannt-cloud-files` 协调完整迁移。下面的普通 `transfer-to-task` 尚未接入网盘移动与记录维护，不可单独用于托管资料迁移。通用 `read`、`update` 仅支持业务 Markdown，不用于读写托管 YAML。
+迁移清单含网盘托管文件或其 YAML 替代文件时，先读[网盘托管规则](../rules/cloud-files.md)，使用 `tt-cloud-files` 协调完整迁移。下面的普通 `transfer-to-task` 尚未接入网盘移动与记录维护，不可单独用于托管资料迁移。通用 `read`、`update` 仅支持业务 Markdown，不用于读写托管 YAML。
 
 ```json
 {
@@ -43,7 +45,7 @@
 
 独立课程等共享来源保持原位。迁移候选附件被其他业务笔记引用时返回 `SHARED_MATERIAL`，列明文件及引用者；先确认归属，不把引用操作当作迁移完成。只更新主记录与相关业务笔记中的 Markdown/wiki 链接和 `attachments` 属性；代码示例、原始附件中的历史文本及库外内容不改写。无效 YAML、独立记录混入或符号链接会阻止迁移。
 
-迁移过程的原请求、文件清单、哈希、修改前后版本及当前阶段保存在 `apps/workbench/data/vault-io/transfers/<request_id>.json`。失败返回 `partial` 和 `recoveryPath`；核对后使用恢复记录中的完整 `input` 重试。任务已创建时保留并继续该任务，不再调用新建。`TRANSFER_PENDING` 表示同一来源已有未完成操作，不能换 ID 另做一次。已完成文件发生变化时拒绝覆盖。恢复清单完成后仍保留供核验和重试；它是本机运行记录，不是可编辑业务资料副本。
+迁移过程的原请求、文件清单、哈希、修改前后版本及当前阶段保存在 `<运行目录>/vault-io/transfers/<request_id>.json`。失败返回 `partial` 和 `recoveryPath`；核对后使用恢复记录中的完整 `input` 重试。任务已创建时保留并继续该任务，不再调用新建。`TRANSFER_PENDING` 表示同一来源已有未完成操作，不能换 ID 另做一次。已完成文件发生变化时拒绝覆盖。恢复清单完成后仍保留供核验和重试；它是本机运行记录，不是可编辑业务资料副本。
 
 ## 分流到项目、领域或资源
 

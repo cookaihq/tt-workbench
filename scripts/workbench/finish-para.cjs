@@ -41,7 +41,7 @@ module.exports = async function finish(app, options = {}) {
   }
   if (report.native?.passed && report.fns?.restored) {
     try {
-    const plugin = app.plugins.plugins['tannt-workbench'];
+    const plugin = app.plugins.plugins['tt-workbench'];
     const view = await plugin.openWorkbench();
     view.navigate('');
     await view.openNote('首页.md');

@@ -16,7 +16,7 @@ const identityFetch = (uk, netdisk_name = '示例账号') => async (url, options
   return { ok: true, json: async () => ({ errno: 0, uk, netdisk_name }) };
 };
 async function fixture(t) {
-  const parent = fileURLToPath(new URL('../../apps/workbench/data/cloud-account-tests/', import.meta.url));
+  const parent = fileURLToPath(new URL('../../tmp/cloud-account-tests/', import.meta.url));
   await fs.mkdir(parent, { recursive: true });
   const root = await fs.mkdtemp(path.join(parent, 'case-'));
   await fs.chmod(root, 0o700);

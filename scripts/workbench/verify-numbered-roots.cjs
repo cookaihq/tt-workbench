@@ -8,7 +8,7 @@ module.exports = async function verify(app) {
   const check = name => report.checks.push({ name, passed: true });
   const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
   const wait = async predicate => { const end = Date.now() + 8000; while (Date.now() < end) { if (await predicate()) return; await pause(80); } throw Error('等待实际应用结果超时'); };
-  const p = app.plugins.plugins['tannt-workbench'], v = await p.openWorkbench();
+  const p = app.plugins.plugins['tt-workbench'], v = await p.openWorkbench();
   const win = v.contentEl.ownerDocument.defaultView;
   const browser = win.require('electron').remote.getCurrentWindow();
   const resizeErrors = [];

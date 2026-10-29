@@ -236,7 +236,7 @@ test('CLI snapshot and JSON check work end to end without modifying FNS settings
   const before = await readFile(settingsPath, 'utf8');
   const snapshotRun = await exec(process.execPath, [cli, 'snapshot', '--vault', f.vault]);
   const baselinePath = snapshotRun.stdout.trim();
-  t.after(() => cleanTemp(path.dirname(baselinePath), 'tannt-fns-audit-'));
+  t.after(() => cleanTemp(path.dirname(baselinePath), 'tt-fns-audit-'));
   const saved = JSON.parse(await readFile(baselinePath, 'utf8'));
   assert(!JSON.stringify(saved).includes('TEST_SECRET'));
   await f.put('.fresh/task.md');

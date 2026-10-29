@@ -1,47 +1,110 @@
-# tt-workbench
+# tt 工作台
 
-可独立安装的桌面 Obsidian 工作台，包含笔记与项目管理、Agent 配套工具、五个场景 Skill、模板及规则。任意名称和位置的知识库均可使用；业务内容沿用五目录与 Project／Task 约定。
+在 Obsidian 中收集笔记、管理项目与任务，并通过配套 Skill 与 Agent 协作。内容保存在知识库的 Markdown 文件中，可以继续使用 Obsidian 阅读和编辑。
 
-## 构建与安装
+[安装](#安装) · [开始使用](#开始使用) · [Agent Skill](#agent-skill) · [更新](#更新) · [使用说明](apps/workbench/README.md)
 
-需要 Node.js 22 或更新版本，不需要安装 npm 依赖。仓库自带所需 YAML 和 JSONC 解析器，其来源与许可证随源码保留。
+## 能做什么
 
-```powershell
-npm test
-npm run build
-npm run install-plugin -- --vault "D:\Knowledge\MyVault"
+- **收集与整理**：记录想法、文字和链接，将收件箱内容整理到项目、任务、领域或资源。
+- **推进项目与任务**：记录目标、完成条件、进展和下一步，按状态查看工作，归档或恢复已有内容。
+- **阅读与编辑**：浏览和搜索知识库笔记，查看关联内容与附件，打开原笔记继续编辑。
+- **与 Agent 协作**：为 Codex、Claude Code 安装配套 Skill，让 Agent 保存新内容、更新笔记、检查配置和整理规则。
+
+工作台按 `0.收件箱`、`1.项目`、`2.领域`、`3.资源`、`4.存档` 组织内容，知识库名称和位置不限。目录约定见[知识库结构](docs/rules/scope-and-directories.md)。
+
+## 安装
+
+需要 **桌面版 Obsidian 1.8.7 或更新版本**，以及一个已经创建的知识库。安装工作台无需克隆源码、安装 Node.js 或执行构建命令。
+
+> 完整安装包请从 [最新正式 Release](https://github.com/cookaihq/tt-workbench/releases/latest) 下载 `tt-workbench.zip`；同版 `release.json` 提供文件校验清单。
+
+### 方式一：下载并解压
+
+以下步骤用于首次安装。已有工作台请看[更新](#更新)；旧版 `tannt-workbench` 用户请看[改名迁移说明](docs/workbench/updates.md#从-tannt-改名迁移)。
+
+1. 打开 [Releases 下载页](https://github.com/cookaihq/tt-workbench/releases)，在最新正式版本的 **Assets（附件）** 中下载 **`tt-workbench.zip`**。页面自动生成的 `Source code` 是源码压缩包，不用于安装。
+2. 退出 Obsidian，解压安装包，将里面的整个 **`tt-workbench` 文件夹**放入知识库的 `.obsidian/plugins/` 目录；没有 `plugins` 文件夹时创建它。
+3. 确认目录如下，并保留包内全部文件与子目录：
+
+   ```text
+   你的知识库/
+   └── .obsidian/
+       └── plugins/
+           └── tt-workbench/
+               ├── manifest.json
+               ├── main.js
+               ├── styles.css
+               ├── release.json
+               └── …其余文件与资源目录
+   ```
+
+4. 重新打开 Obsidian，在「设置 → 第三方插件」中允许使用第三方插件，然后启用 **「tt 工作台」**。
+5. 点击左侧工作台图标，或在命令面板中搜索「tt 工作台」并执行「打开工作台」。
+
+`.obsidian` 通常是隐藏文件夹，可在文件管理器中开启显示隐藏文件。如果使用了自定义 Obsidian 配置目录，将上面的 `.obsidian` 换成自己的目录名。
+
+### 方式二：让 Agent 帮忙安装
+
+将下面的提示词复制给能够操作本机文件的 Agent，例如 Codex 或 Claude Code，并填写知识库的绝对路径。
+
+```text
+请帮我安装 Obsidian 插件 tt-workbench：
+https://github.com/cookaihq/tt-workbench
+
+知识库绝对路径：<填写我的知识库路径>
+Obsidian 配置目录：.obsidian（如有自定义，请替换）
+
+先阅读仓库当前 README 和 docs/workbench/installation.md，
+下载最新正式 Release 的 tt-workbench.zip 及同版 release.json，
+核验后按用户安装说明安装，无需克隆源码或构建。
+如果没有可用发布包，请说明情况。
+
+先核对知识库与配置目录，缺少必要信息时询问我。
+若已有插件（包括旧 tannt-workbench），按更新或迁移说明处理，
+保留设置与本机文件，遇到冲突先报告。
+
+本次仅安装插件，不修改笔记、同步配置、Skill 入口或个人规则。
+完成后报告版本、安装位置与校验结果，并指导我启用和打开工作台。
 ```
 
-自定义 Obsidian 配置目录追加 `--config-dir "obsidian-settings"`。安装前可使用 `--check` 比较文件；`--help` 和 `--check` 均不执行安装。之后在 Obsidian 中启用「tannt 工作台」。插件仅支持桌面端。
+## 开始使用
 
-安装只写插件文件和内置资源。首次安装不修改业务笔记、账号、FNS、Skill 发现入口或用户全局规则。基础笔记功能不要求 FNS；使用 FNS 时另行设置插件和运行记录排除。
+1. 打开工作台，用「随手记」保存一条想法或链接；保存后可以在收件箱中找到它。
+2. 需要推进一项工作时创建项目，再为项目添加任务，记录完成条件和下一步。
+3. 需要 Agent 帮忙保存或整理内容时，再按下方步骤安装 Skill。
 
-构建产物为 `dist/plugin/`、`dist/release.json` 和 `dist/tannt-workbench.bundle.json.gz`。完整插件包包含共享模块、工具与规则，不能只复制 `main.js`。离线分发包可这样安装：
+插件安装只添加工作台及内置资源。笔记由你在使用时创建，Skill、账号和个人规则按需设置。基础笔记功能无需 FNS；使用 FNS 同步时，请先按[同步排除说明](docs/workbench/updates.md#fns-与恢复材料)设置本机排除目录。
 
-```powershell
-node scripts/workbench/install.mjs --vault "D:\Knowledge\MyVault" --bundle "dist/tannt-workbench.bundle.json.gz"
-```
+更多操作见[使用说明](apps/workbench/README.md)、[项目与任务](docs/workbench/work-records.md)和[浏览器剪藏](docs/workbench/browser-capture.md)。
 
-已有插件缺少校验清单、安装文件被修改或目标含未知链接时会停止；先核对来源和保留恢复材料，再执行迁移，不能覆盖跳过校验。
+## Agent Skill
 
-## Skill 与 Agent 工具
+在「系统 → Skill 安装」中选择 **Codex** 或 **Claude Code**，安装单项或全部未安装的 Skill：
 
-在工作台「系统 → Skill 安装」中，选择 Codex 或 Claude Code，安装单项或全部未安装项。页面提供状态检查、已知入口修复、移除及使用说明。也可独立使用已安装插件内的安装器：
+| Skill | 用途 |
+| --- | --- |
+| `tt-capture` | 保存想法、文字和链接 |
+| `tt-update-note` | 补充笔记、整理收件箱、归档或恢复 |
+| `tt-cloud-files` | 管理网盘中的托管文件 |
+| `tt-sync-agent-config` | 按知识库清单检查 Agent 配置 |
+| `tt-organize-agent-rules` | 整理规则并接入选定的规则源 |
 
-```powershell
-node "D:\Knowledge\MyVault\.obsidian\plugins\tannt-workbench\scripts\agent-skills\install.mjs" --vault "D:\Knowledge\MyVault" --agent codex
-```
+安装后，在目标知识库中新开 Agent 会话，检查 Skill 是否可用。外部 Agent 调用配套命令行工具需要 Node.js 22 或更新版本；网盘账号等服务按对应 Skill 的指引单独配置。详见[Skill 安装与使用](docs/workbench/agent-skill-setup.md)。
 
-Claude Code 使用 `--agent claude`；明确需要两个宿主时使用 `--agent all`。在目标知识库中新开会话验证发现，参见[接入说明](docs/workbench/agent-skill-setup.md)。安装前核验本机 Git/FNS 排除；同名冲突逐项保留。
+## 更新
 
-「Agent 规则」读取用户选择的正式规则目录。个人全局指令由知识库或规则仓库维护，工作台安装包不包含这些正文；规则接入工具要求显式 `--source`。
+点击工作台右上角的版本号。首次使用时，将更新来源设为 **`cookaihq/tt-workbench`**，然后检查更新；有新版本时点击安装，完成后按提示重启 Obsidian。
 
-独立 CLI 通过 stdin 接收 JSON，始终指定 `--vault <绝对路径>`，无需 Obsidian 运行。规则／工具的位置与目标库分别解析，见[路径约定](docs/agents/package-layout.md)及[文件操作](docs/agents/vault-file-operations.md)。
+内置更新保留插件设置。若提示文件被修改或发生冲突，请查看[更新与恢复说明](docs/workbench/updates.md)。
 
-## 发布与更新
+## 帮助与反馈
 
-GitHub 远端尚未配置，也未公开发布。后续发布时递增 `package.json` 与插件 manifest 的版本，测试、构建，并把两个发布文件作为同一 GitHub Release 的附件上传。软件更新读取配置的公开 `owner/repository`，提示新版本后由用户点击安装；不使用知识库 Git 远端。详细行为见[更新说明](docs/workbench/updates.md)。
+- 插件没有出现：确认 `manifest.json` 直接位于 `.obsidian/plugins/tt-workbench/`，没有多套一层目录；检查 Obsidian 版本并重启应用。
+- 找不到工作台：在命令面板中搜索「tt 工作台」，执行「打开工作台」。
+- 安装或校验遇到问题：查看[安装说明](docs/workbench/installation.md)。
+- 反馈问题或建议：前往 [GitHub Issues](https://github.com/cookaihq/tt-workbench/issues)，附上插件版本、Obsidian 版本和复现步骤。
 
-源码在本仓库维护；知识库笔记、账号、FNS 设置与运行记录归知识库实例。FNS 配置传输仍使用知识库自己的仓库，不可指向公开软件仓库。历史源码提交留在原 tannt 仓库；本仓从当前版本建立新历史。迁移的原始本机验收材料位于 Git 忽略的 `local-evidence/`，历史验证不能替代新版本验收。
+## 开发与贡献
 
-`npm test` 可独立执行。FNS 旧扫描器的集成测试需要用户另备 FNS 2.4.0 插件，通过 `TEST_FNS_BUNDLE` 指定其 `main.js`；缺少时明确跳过这些外部集成测试。真实 GitHub 更新和其他电脑的实际加载需在相应环境另行验证。
+源码构建、测试、本地安装和发布流程见[开发说明](docs/workbench/development.md)。

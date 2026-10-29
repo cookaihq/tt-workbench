@@ -11,12 +11,12 @@ module.exports = async function(app) {
   const wait = async (fn, label) => { const until = Date.now()+12000; while(Date.now()<until) { if(await fn()) return; await new Promise(r=>setTimeout(r,80)); } throw Error('等待超时：'+label); };
   let plugin, v, shared;
   const reload = async () => {
-    await app.plugins.unloadPlugin('tannt-workbench');
-    const installed = path.join(root,'.obsidian/plugins/tannt-workbench/');
+    await app.plugins.unloadPlugin('tt-workbench');
+    const installed = path.join(root,'.obsidian/plugins/tt-workbench/');
     for(const key of Object.keys(require.cache)) if(key.startsWith(installed)) delete require.cache[key];
     await app.plugins.loadManifests();
-    await app.plugins.enablePluginAndSave('tannt-workbench');
-    plugin=app.plugins.plugins['tannt-workbench']; assert.equal(plugin.manifest.version,'0.16.0');
+    await app.plugins.enablePluginAndSave('tt-workbench');
+    plugin=app.plugins.plugins['tt-workbench']; assert.equal(plugin.manifest.version,'0.16.0');
     shared=require(path.join(installed,'shared.js')); assert.equal(typeof shared.TaskTransfer,'function');
     v=await plugin.openWorkbench();
   };
@@ -104,7 +104,7 @@ module.exports.verifySavedTask = async function(app) {
   assert.equal(app.vault.getName(),'tannt');
   const root=app.vault.adapter.getBasePath(),file='.scratch/task-materials-together/verification/business-migration.json';
   const record=JSON.parse(await fs.readFile(path.join(root,file),'utf8'));
-  const plugin=app.plugins.plugins['tannt-workbench'],v=await plugin.openWorkbench();
+  const plugin=app.plugins.plugins['tt-workbench'],v=await plugin.openWorkbench();
   const wait=async fn=>{const until=Date.now()+10000;while(Date.now()<until){if(await fn())return;await new Promise(r=>setTimeout(r,80));}throw Error('实际研究任务显示超时');};
   const result={checkedAt:new Date().toISOString(),version:plugin.manifest.version,task:record.task,checks:[]};
   const check=name=>result.checks.push({name,passed:true});

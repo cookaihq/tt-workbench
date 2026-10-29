@@ -9,7 +9,7 @@
   if (!targetVault?.trim()) return;
   const params = Object.entries({ vault: targetVault.trim(), target: targetVault.trim(), title: document.title, text, source })
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
-  const uri = `obsidian://tannt-capture?${params}`;
+  const uri = `obsidian://tt-capture?${params}`;
   if (text.length > 12000 || uri.length > 24000) { alert("选区过长，请分段剪藏，或复制后在工作台保存。当前内容没有截断或保存。"); return; }
   location.href = uri;
 })();

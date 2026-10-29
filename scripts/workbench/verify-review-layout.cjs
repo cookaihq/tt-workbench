@@ -10,7 +10,7 @@ module.exports = async function verify(app, view) {
   const report={checkedAt:new Date().toISOString(),checks:[]};
   const pause=ms=>new Promise(r=>setTimeout(r,ms));
   const sample=mapPreviousPath(JSON.parse(await fs.readFile(path.join(out,'04-native-review.json'),'utf8')).sample);
-  const plugin=app.plugins.plugins['tannt-workbench'];
+  const plugin=app.plugins.plugins['tt-workbench'];
   const original=[];
   const browser=view.contentEl.ownerDocument.defaultView.require('electron').remote.getCurrentWindow();
   try {

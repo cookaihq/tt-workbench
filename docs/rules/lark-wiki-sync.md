@@ -1,5 +1,7 @@
 # 飞书知识库编辑与同步
 
+本文中的 `<运行目录>` 按[本机运行记录](writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
+
 ## 适用范围
 
 本规则适用于 Agent 在本库 `3.资源/飞书知识库/` 下新建、修改、重命名、移动或删除知识库内容，包括正文、附件和目录结构。目录迁移期间旧 `04.资料/飞书知识库/` 及已明确移位的同步单元同样适用，不能通过路径变化绕过同步规则。每个知识库子目录对应一个飞书知识空间；涉及多个知识库时，分别核对账号、拉取并报告结果。
@@ -54,11 +56,11 @@ profile 选择的是 CLI 应用配置，不能单独证明当前登录用户。A
 
 ### 自动生成的同步记录
 
-Agent 将自动生成的同步记录保存在库根相对路径 `apps/workbench/data/lark-wiki-sync/<space_id>/runs/<run_id>/`：`nodes.json` 保存节点树，`documents/` 保存配套的 XML、Markdown 完整响应，`local-baseline/` 保存转换后的本地基准，`install-manifest.json` 保存文件路径、节点标识、远端版本、文件哈希及完成阶段。正文与 `reference_map` 配套保留，不能只保留 Markdown 而丢弃原始引用信息。
+Agent 将自动生成的同步记录保存在库根相对路径 `<运行目录>/lark-wiki-sync/<space_id>/runs/<run_id>/`：`nodes.json` 保存节点树，`documents/` 保存配套的 XML、Markdown 完整响应，`local-baseline/` 保存转换后的本地基准，`install-manifest.json` 保存文件路径、节点标识、远端版本、文件哈希及完成阶段。正文与 `reference_map` 配套保留，不能只保留 Markdown 而丢弃原始引用信息。
 
 全部核验成功后，才更新同一 `<space_id>/` 下自动生成的 `latest.json`，指向本次清单。后续 Agent 先读取该指针与清单，再比较本地文件和基准；中断或部分成功的记录须先检查实际完成阶段。这些是运行记录，不是另一份手工配置，也不作为可编辑业务内容。
 
-此位置沿用本库现有 `apps/workbench/data/` 运行数据约定；当前设备已核对 FNS 排除覆盖，其他设备须分别核验。运行记录缺失时不能假定本地没有改动，也不能声称另一台设备已经拥有比较基准。
+后续自动生成的同步记录使用实例 `<运行目录>/` 运行目录，使用前按[写入与变更](writing-and-changes.md#本机运行记录)核验 Git/FNS 排除。已有 `config/workbench-migration/` 中的实例历史说明继续原位保存，不作为运行数据迁移。运行记录缺失时不能假定本地没有改动，也不能声称另一台设备已经拥有比较基准。
 
 ## 开始编辑之前
 

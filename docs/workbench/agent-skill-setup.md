@@ -1,5 +1,7 @@
 # Skill 安装与使用
 
+本文中的 `<运行目录>` 按[本机运行记录](../rules/writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
+
 工作台「系统 → Skill 安装」采用列表与详情并排的 A 页面。页面显示当前知识库的名称及绝对路径，选择 Codex 或 Claude Code 后可安装单项或全部未安装项。清单、中文用途、示例与后续指引来自 `skills/manifest.jsonc`；资源版本跟随插件更新。
 
 ## 状态与操作
@@ -18,23 +20,37 @@
 
 ## 位置与独立 CLI
 
+在工作台页面管理 Skill 无需单独安装 Node.js；通过外部 Agent 或终端运行下面的安装器及配套文件工具时，需要 Node.js 22 或更新版本。
+
 Codex 使用 `<库>/.agents/skills/<名称>`，Claude Code 使用 `<库>/.claude/skills/<名称>`，相对链接指向当前库安装插件的 `skills/<名称>`。自定义 Obsidian 配置目录由当前插件提供；CLI 使用安装副本并显式传 `--vault` 和适用的 `--config-dir`，不依赖开发检出或 Obsidian 进程。
 
 ```text
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --check
-node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --skill tannt-capture
+node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --skill tt-capture
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent claude
-node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action repair --skill tannt-capture
-node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action remove --skill tannt-capture
+node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action repair --skill tt-capture
+node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action remove --skill tt-capture
 ```
 
 `--agent all` 明确处理两宿主；重复 `--skill` 可选多项，省略时安装活动清单。修复和移除必须指定名称。旧源迁接使用 `--action repair --skill <名称> --migrate-from "<已核实旧 skills 绝对目录>"`；该参数是操作者对具体旧来源的确认，不能用于任意覆盖。退役名称仅记录历史，普通安装不会清理清单外入口。
 
 `--check` 与 `--help` 只读。结果为逐宿主、逐项 JSON；有失败或跳过时退出码为 1，检查时只有所选项目全部已安装才为 0。检查结果另列 Git/FNS 隔离状态，已安装不等于允许下一次写入。
 
+## 旧前缀迁移
+
+五个活动 Skill 使用 `tt-` 前缀。`skills/manifest.jsonc` 的 `renamedFrom` 记录原 `tannt-` 名称；旧名称保留为迁移依据，不作为活动 Skill 分发。
+
+扫描发现已登记的旧链接时显示待修复，页面提供「迁移为新名称」。选择新名称执行修复，先核验旧入口与当前资源，建立并读回新入口，再更新安装记录并移除已核实的旧链接。新入口已正确安装时可单独完成旧链接清理；普通安装会跳过待迁移项。
+
+```text
+node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action repair --skill tt-capture
+```
+
+缺少安装记录时先核实旧链接实际指向的 `skills` 绝对目录，再追加 `--migrate-from "<旧 skills 绝对目录>"`，包括插件改名前的位置；目录已迁走时仍使用链接记录的原路径。普通文件、目录和未知来源链接会保留并显示冲突。Codex 与 Claude Code 分别迁移，完成后从目标库根目录新开会话核对 `tt-` Skill 列表。
+
 ## 本机隔离与失败恢复
 
-发现入口和 `apps/workbench/data/agent-skills/` 属于设备本地接入。创建前检查目标库的 Git 忽略及已跟踪文件；有 FNS 配置时验证对应发现目录和运行记录的明确排除，白名单不能覆盖。页面还核对当前运行 FNS 的设置。缺项时展示原因，用户在各自流程修正；安装不改 Git/FNS 配置。其他设备分别注册入口，不能同步本机链接代替安装。
+发现入口和 `<运行目录>/agent-skills/` 属于设备本地接入。创建前检查目标库的 Git 忽略及已跟踪文件；有 FNS 配置时验证对应发现目录和运行记录的明确排除，白名单不能覆盖。页面还核对当前运行 FNS 的设置。缺项时展示原因，用户在各自流程修正；安装不改 Git/FNS 配置。其他设备分别注册入口，不能同步本机链接代替安装。
 
 共享模块使用本机操作锁协调 CLI 与 UI，以入口身份、链接目标、资源内容和页面令牌识别变化。新建链接使用独占创建；移除／修复先暂存并核验旧入口，遇到并发新内容时保留双方。恢复记录保存在现有运行目录，不改变运行目录归属。外部编辑器、Git 和 FNS 不参与该锁，反复检查不能保证全局原子事务。
 

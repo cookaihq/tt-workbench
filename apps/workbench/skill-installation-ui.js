@@ -63,7 +63,7 @@ class SkillInstallationUI {
       notice.createEl('strong', { text: '完成本机检查后才能操作入口' });
       for (const reason of s.isolation.reasons) notice.createDiv({ text: reason });
       if (s.isolation.reasons.some(reason => reason.startsWith('FNS'))) this.button(notice, '打开 FNS 配置同步', () => this.view.navigate('@fns'));
-      if (s.busy) notice.createDiv({ text: '存在 Skill 操作锁。若先前异常退出，请核对持有进程及 apps/workbench/data/agent-skills/ 中的恢复记录。' });
+      if (s.busy) notice.createDiv({ text: `存在 Skill 操作锁。若先前异常退出，请核对持有进程及 ${this.view.plugin.skills.runtime}/ 中的恢复记录。` });
     }
     const needs = s.items.filter(i => ['broken', 'conflict', 'error'].includes(i.status));
     if (needs.length) this.root.createDiv({ text: `${needs.length} 项需处理。损坏入口可单独修复；冲突内容保留。批量安装会列出跳过原因。`, cls: 'tw-skills-notice' });
@@ -92,13 +92,14 @@ class SkillInstallationUI {
     const fact = parent.createDiv({ cls: 'tw-skills-facts' });
     fact.createEl('strong', { text: `${HOSTS[this.agent].name} 发现入口` }); fact.createDiv({ text: item.entry, cls: 'tw-skills-path' });
     fact.createDiv({ text: `内置资源：${item.source}`, cls: 'tw-skills-path' });
+    if (item.previous) fact.createDiv({ text: `旧名称入口：${item.previous.entry}`, cls: 'tw-skills-path' });
     if (item.target) fact.createDiv({ text: `当前链接目标：${item.target}`, cls: 'tw-skills-path' });
     if (item.reason) fact.createEl('p', { text: item.reason, cls: 'tw-warning' });
     const actions = parent.createDiv({ cls: 'tw-skills-actions' });
     if (item.status === 'absent') this.button(actions, '安装到 ' + HOSTS[this.agent].name, () => this.perform('install', [item.name]), { primary: true, disabled: !this.writable() });
-    if (item.status === 'broken') this.button(actions, '修复入口', () => this.perform('repair', [item.name]), { primary: true, disabled: !this.writable() });
+    if (item.status === 'broken') this.button(actions, item.previous ? '迁移为新名称' : '修复入口', () => this.perform('repair', [item.name]), { primary: true, disabled: !this.writable() });
     if (item.status === 'installed') this.button(actions, '使用说明', () => this.usage(item), { primary: true });
-    if (['installed', 'broken'].includes(item.status)) this.button(actions, '移除安装…', () => this.confirmRemove(item), { disabled: !this.writable() });
+    if (['installed', 'broken'].includes(item.status) && !item.previous) this.button(actions, '移除安装…', () => this.confirmRemove(item), { disabled: !this.writable() });
     if (['conflict', 'error'].includes(item.status)) this.button(actions, '处理后重新检查', () => this.refresh());
     parent.createEl('h3', { text: '安装后怎么用' }); parent.createEl('p', { text: item.next });
     if (item.example) parent.createDiv({ text: item.example, cls: 'tw-skills-example' });

@@ -14,14 +14,14 @@ const DEVICE_FIELDS = ['apiToken', 'api', 'vault', 'configSyncEnabled', 'readonl
 async function verifyPersistedSettings(app, expected) {
   assert.equal(app.vault.getName(), 'tannt', '必须在 tannt 验收');
   const root = app.vault.adapter.getBasePath();
-  const runtime = require(path.join(root, '.obsidian/plugins/tannt-workbench/fns-runtime.js')).createFnsRuntime(app);
+  const runtime = require(path.join(root, '.obsidian/plugins/tt-workbench/fns-runtime.js')).createFnsRuntime(app);
   const before = expected || { ...(await runtime.inspect()).settings };
   const previous = await runtime.suspend();
   try { assert.equal((await runtime.inspect()).loaded, false, 'FNS 应实际暂停'); }
   finally { await runtime.restore(previous); }
   const after = (await runtime.inspect()).settings;
   for (const field of DEVICE_FIELDS) assert.ok(after?.[field] === before[field], `再次加载后设备字段 ${field} 应保持原值`);
-  const report = await app.plugins.plugins['tannt-workbench'].fns.inspect();
+  const report = await app.plugins.plugins['tt-workbench'].fns.inspect();
   assert.equal(report.runtime.loaded, true, '再次加载的四组规则应与磁盘一致');
   assert.equal(report.device.status, 'ready', '再次加载后应继续使用普通文件');
   return { passed: true, deviceFieldsPreserved: DEVICE_FIELDS, runtimeLoaded: true, ordinaryConfig: true };
@@ -36,11 +36,11 @@ module.exports = async function verifyFns(app, { migrate = false } = {}) {
   const checkpoint = async stage => { report.stage = stage; await fs.writeFile(path.join(directory, 'native.json'), JSON.stringify(report, null, 2) + '\n'); };
   const source = path.join(root, app.vault.configDir, 'plugins/fast-note-sync/data.json');
   const before = JSON.parse(await fs.readFile(source, 'utf8'));
-  const noteDrafts = app.workspace.getLeavesOfType('tannt-workbench').filter(l => l.view.fnsUI?.notesEditorDraft)
+  const noteDrafts = app.workspace.getLeavesOfType('tt-workbench').filter(l => l.view.fnsUI?.notesEditorDraft)
     .map(l => ({ leafId: l.id, draft: structuredClone(l.view.fnsUI.notesEditorDraft),
       open: Boolean(l.view.contentEl.querySelector('dialog[open][aria-label="编辑规则设置说明"]')) }));
   if (noteDrafts.length) {
-    const backup = path.join(root, 'apps/workbench/data/fns-local-config-validation/notes-input-before.json');
+    const backup = path.join(root, '.system/.workbench-runtime/fns-local-config-validation/notes-input-before.json');
     await fs.mkdir(path.dirname(backup), { recursive: true });
     await fs.writeFile(backup, JSON.stringify(noteDrafts, null, 2), { mode: 0o600 });
     assert.deepEqual(JSON.parse(await fs.readFile(backup, 'utf8')), noteDrafts);
@@ -48,14 +48,14 @@ module.exports = async function verifyFns(app, { migrate = false } = {}) {
   report.preservedNoteDrafts = noteDrafts.length;
   await checkpoint('检查工作台草稿');
   try {
-    assert.ok(!app.workspace.getLeavesOfType('tannt-workbench').some(l => {
+    assert.ok(!app.workspace.getLeavesOfType('tt-workbench').some(l => {
       const v = l.view;
       return v.saving || v.fnsUI?.busy || v.captureContent?.value || v.inboxDrafts?.size || v.workUI?.drafts?.size || v.taskUI?.drafts?.size || v.issueUI?.drafts?.size || v.issueUI?.createDraft;
     }), '工作台仍有未保存输入，不能重载插件。');
     await checkpoint('重载工作台插件');
-    await app.plugins.unloadPlugin('tannt-workbench');
-    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tannt-workbench');
-    const plugin = app.plugins.plugins['tannt-workbench']; assert.ok(plugin); assert.equal(plugin.manifest.version, '0.21.0');
+    await app.plugins.unloadPlugin('tt-workbench');
+    await app.plugins.loadManifests(); await app.plugins.enablePluginAndSave('tt-workbench');
+    const plugin = app.plugins.plugins['tt-workbench']; assert.ok(plugin); assert.equal(plugin.manifest.version, '0.21.0');
     await checkpoint('打开工作台独立窗口');
     const view = await plugin.openWorkbench(true);
     await checkpoint('打开 FNS 页面'); view.navigate('@fns');
@@ -118,7 +118,7 @@ module.exports = async function verifyFns(app, { migrate = false } = {}) {
     }
     view.navigate('@fns'); await view.fnsUI.refresh();
     report.checks.push('1280/420 宽度、真实方向键切换、设备检查弹窗与业务导航回归');
-    const nativeRuntime = require(path.join(root, '.obsidian/plugins/tannt-workbench/fns-runtime.js')).createFnsRuntime(app);
+    const nativeRuntime = require(path.join(root, '.obsidian/plugins/tt-workbench/fns-runtime.js')).createFnsRuntime(app);
     const beforeRuntime = { ...(await nativeRuntime.inspect()).settings };
     await checkpoint('暂停并恢复真实 FNS');
     const previous = await nativeRuntime.suspend();
@@ -126,7 +126,7 @@ module.exports = async function verifyFns(app, { migrate = false } = {}) {
     finally { await nativeRuntime.restore(previous); }
     await view.fnsUI.refresh(); assert.equal(view.fnsUI.report.runtime.loaded, true);
     assert.equal((await fs.lstat(source)).isSymbolicLink(), false);
-    const { normalize, fingerprint } = require(path.join(root, '.obsidian/plugins/tannt-workbench/lib/fns/rules.cjs'));
+    const { normalize, fingerprint } = require(path.join(root, '.obsidian/plugins/tt-workbench/lib/fns/rules.cjs'));
     assert.equal(fingerprint(normalize(JSON.parse(await fs.readFile(source, 'utf8')))), fingerprint(normalize(before)), '暂停/恢复不能改变四组规则');
     const afterRuntime = (await nativeRuntime.inspect()).settings;
     for (const field of ['apiToken', 'api', 'vault', 'configSyncEnabled', 'readonlySyncEnabled', 'autoRedirectEnabled', 'wsPreProbeEnabled']) assert.ok(afterRuntime[field] === beforeRuntime[field], `设备字段 ${field} 的实际加载值保持原状`);
@@ -142,11 +142,11 @@ module.exports = async function verifyFns(app, { migrate = false } = {}) {
     report.passed = true; report.stage = '完成';
   } catch (error) { report.passed = false; report.failure = error.message; }
   finally {
-    const plugin = app.plugins.plugins['tannt-workbench'];
+    const plugin = app.plugins.plugins['tt-workbench'];
     if (plugin) {
       report.restoredNoteDrafts = 0;
       for (const saved of noteDrafts) {
-        const leaf = app.workspace.getLeavesOfType('tannt-workbench').find(l => l.id === saved.leafId && l.view.fnsUI);
+        const leaf = app.workspace.getLeavesOfType('tt-workbench').find(l => l.id === saved.leafId && l.view.fnsUI);
         const view = leaf?.view || await plugin.openWorkbench(true);
         view.fnsUI.notesEditorDraft = structuredClone(saved.draft);
         view.navigate('@fns'); await view.fnsUI.refresh();

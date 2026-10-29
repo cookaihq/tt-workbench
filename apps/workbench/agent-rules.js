@@ -4,7 +4,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
 
-const SKILL = "tannt-organize-agent-rules";
+const SKILL = "tt-organize-agent-rules";
 const MAX_BYTES = 1024 * 1024;
 const LABELS = Object.freeze({ linked: "直接符号链接", file: "普通文件", directory: "普通目录", other: "指向其他位置", indirect: "经过中间链接", broken: "符号链接已失效", missing: "入口不存在", unknown: "无法判断", invalid: "类型不符合", present: "存在非空覆盖文件", empty: "覆盖文件为空", none: "无覆盖文件", na: "不适用" });
 const errorText = error => `${error.code || "READ_FAILED"}：${error.message}`;

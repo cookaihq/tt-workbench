@@ -43,7 +43,7 @@ function requestBytes(url, { accept = 'application/vnd.github+json', limit = 64 
 class WorkbenchUpdates {
   constructor({ vault, configDir = '.obsidian', version, appVersion, repository = '', request = requestBytes, beforeInstall, saveRepository } = {}) {
     this.vault = path.resolve(vault); this.configDir = configDir;
-    this.target = path.join(this.vault, configDir, 'plugins/tannt-workbench');
+    this.target = path.join(this.vault, configDir, 'plugins/tt-workbench');
     this.version = version; this.appVersion = appVersion;
     this.repository = repositoryName(repository); this.request = request;
     this.beforeInstall = beforeInstall; this.saveRepository = saveRepository;
@@ -78,7 +78,7 @@ class WorkbenchUpdates {
       const release = parseRelease(releaseRaw), difference = compareVersions(release.version, this.version), checkedAt = new Date().toISOString();
       if (difference <= 0) this.setStatus({ kind: difference < 0 ? 'ahead' : 'current', latest: release.version, checkedAt });
       else {
-        const bundle = asset('tannt-workbench.bundle.json.gz');
+        const bundle = asset('tt-workbench.bundle.json.gz');
         if (!Number.isSafeInteger(bundle.size) || bundle.size <= 0 || bundle.size > 64 * 1024 * 1024) fail('INVALID_PACKAGE', '安装附件大小无效。');
         this.setStatus({ kind: 'available', latest: release.version, release, bundleUrl: this.assetUrl(bundle), bundleSize: bundle.size, checkedAt });
       }
