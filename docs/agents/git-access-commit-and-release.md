@@ -4,7 +4,7 @@
 
 ## 仓库与操作范围
 
-本项目的主仓为 GitHub `cookaihq/tt-workbench`，主要远端为 `origin`。2026-10-29 用户明确选择后，仓库级默认推送远端设为 `remote.pushDefault=origin`，`main` 跟踪 `origin/main`，远端默认分支记录为 `origin/HEAD -> origin/main`。默认目标配置不构成自动推送授权；凭证仍按下文的已选来源和按次鉴权方式使用。
+本项目的主仓为 GitHub `cookaihq/tt-workbench`，主要远端为 `origin`。2026-10-29 用户明确选择后，仓库级默认推送远端设为 `remote.pushDefault=origin`，`main` 跟踪 `origin/main`，远端默认分支记录为 `origin/HEAD -> origin/main`。默认目标配置不构成自动推送授权；普通 Git 按下文本机接入读取已选来源，Agent 的身份核验与发布仍遵守对应流程。
 
 远端 `origin` 的读取与推送地址均为 `https://github.com/cookaihq/tt-workbench.git`。2026-10-29 使用仓库独立 Token 完成接入及读取回读；GitHub 返回账号为 `cookaihq`，远端默认分支为 `main`，当次可见提交为 `6bf7342a8063ab77295a07ffc463d8ba120da518`。
 
@@ -31,15 +31,42 @@ git config --show-origin --get user.email
 
 用户明确选择本仓独立 Token，方式为 `github-token`。唯一来源是主检出的 `.credentials/repositories/cookaihq--tt%2Dworkbench.github-token`，目标仅为 `https://github.com/cookaihq/tt-workbench.git`。后续调用直接读取该文件当前值，不使用本机 `gh` 登录、环境 Token 或全局 helper；来源缺失或失效时修复此文件，不自动切换。
 
-文件内容只能是单行 Token 原文，不加引号、变量名或 URL，允许一个末尾换行。2026-10-29 用户填写并明确回复后已完成验证；通过本机 `.git/info/exclude` 忽略该精确路径，文件及两个父目录的 Windows ACL 仅允许当前用户访问，已禁用继承。每次使用前核对未跟踪、被 Git 忽略且为无链接的普通文件；其他设备分别核验 Windows 私有 ACL 或 Unix 目录 700、文件 600。新设备首次准备文件后也须等待用户明确已填写才读取。Token 不进入对话、参数、remote、规则或日志。
+文件内容只能是单行 Token 原文，不加引号、变量名或 URL，允许一个末尾换行。2026-10-29 用户填写并明确回复后已完成验证；当前由根 `.gitignore` 的 `/.credentials/` 规则忽略，文件及两个父目录的 Windows ACL 仅允许当前用户访问，已禁用继承。每次使用前核对未跟踪、被 Git 忽略且为无链接的普通文件；其他设备分别核验 Windows 私有 ACL 或 Unix 目录 700、文件 600。新设备首次准备文件后也须等待用户明确已填写才读取。Token 不进入对话、参数、remote、规则或日志。
 
 本机确有来源差异需要记录时，使用主检出的 `.credentials/repositories/sources.local.md`，保持未跟踪且被忽略。唯一 JSON fenced array 只记录 `{url, method, account}` 或 `{url, method, file}`，文件路径相对主检出，不记录秘密、验证状态或 Token 指纹。没有记录时沿用本节已经明确的来源，不能从活动账号、其他仓库或全局 helper 补选。能从本节重建时无需另存记录。
 
 当前没有 CNB 远端或 GitHub/CNB 同步策略。今后明确接入 CNB 时，先单独选择来源；CNB 文件保存一行带身份字段的 HTTPS 仓库 URL：主机为 `cnb.cool`，路径为完整仓库路径，用户名固定为 `cnb`，密码字段为 Token，Token 的 URL 特殊字符须编码。不得借用知识库的凭证或传输仓库。
 
-## 按次鉴权，不依赖安装本 Skill
+## 普通 Git 与推送按钮的本机接入
 
-普通终端、IDE、CI 继续使用各自既有鉴权，不会自动读取自定义凭证目录。Agent 使用下面的过程构造本次 Git 子进程环境；仅在已忽略的 `tmp/git-setup/` 放置必要短期 helper，文件不含 Token。无需安装持久 helper 或复制 Skill 实现。
+本机已按用户授权，把普通 Git 和 Orca 推送按钮接到同一 Token 文件。正式 helper 为 [`scripts/git/credential-helper.mjs`](../../scripts/git/credential-helper.mjs)，独立使用 Node.js，不依赖 git-setup Skill 安装位置。它只接受 HTTPS `github.com`、完整路径 `cookaihq/tt-workbench`（允许 `.git`）和 `x-access-token` 用户名；每次 `get` 核对当前检出与主检出的 common Git 目录、文件未跟踪且被忽略、普通单链接文件及私有权限后，读取文件当前值。Token 轮换后下一次调用直接生效；`store`、`erase` 不写入或删除来源。
+
+接入配置写在仓库 common Git 配置中，供该仓主检出及关联 Worktree 使用；其他仓库和全局配置不受影响。分别对以下两个完整 URL 配置同一组值：`https://github.com/cookaihq/tt-workbench.git` 与省略末尾 `.git` 的地址。
+
+| 仓库级配置键 | 值 |
+| --- | --- |
+| `credential.<url>.helper` | 按顺序先写空值清空继承 helper，再写下述调用命令 |
+| `credential.<url>.useHttpPath` | `true` |
+| `credential.<url>.username` | `x-access-token` |
+| `credential.<url>.interactive` | `false` |
+| `http.<url>.extraHeader` | 空值 |
+| `http.<url>.followRedirects` | `false` |
+
+helper 命令形态如下；`<node>` 和 `<主检出>` 须解析为本设备已核实的绝对路径，供 Git 的 shell 使用。Windows 路径转换为 `/`，单引号按 shell 规则转义，不能把示例占位符直接写入配置。
+
+```sh
+!f() { '<node>' '<主检出>/scripts/git/credential-helper.mjs' "$@" || printf 'quit=true\n\n'; }; f
+```
+
+重建接入前核对 remote、现有目标 helper 与有效 HTTP 鉴权头，保留无关配置；出现冲突先修复已选来源。按表用 `git config --local` 写入，helper 的空值及命令须作为两个有序值保留。命令只含程序与脚本路径；启动失败或来源校验失败通过 `quit=true` 终止凭证获取，避免回退登录其他账号。
+
+本机配置不随 clone 同步。其他设备以各自主检出为基准，保持 `scripts/git/credential-helper.mjs` 与 `.credentials/repositories/cookaihq--tt%2Dworkbench.github-token` 的相对路径，分别准备已授权凭证、核对权限并重建本机接入；移动主检出或更换 Node 位置后也须重新核对命令路径。CI 的来源及接入须单独明确。
+
+验证时捕获 `git credential fill` 的输出并只报告是否匹配原来源，禁止直接回显；用该凭据核验 GitHub 身份，再在禁止交互的环境执行 `git push --dry-run --set-upstream origin HEAD`。2026-10-29 本机已通过此验证，身份为 `cookaihq`；这证明普通 Git 能完成本次推送预演，未实际点击 UI 按钮或写入远端，也不证明未来提交能通过分支保护与服务器检查。回归测试入口为 `node --test scripts/git/credential-helper.test.mjs`，亦纳入 `npm test`；实施记录见 [普通 Git 认证修复](../../.scratch/git-credential-repair/implementation.md)。
+
+## Agent 按次鉴权
+
+Agent 的账号核验、API 调用与发布仍使用下面的过程构造本次 Git 子进程环境，以便固定本轮来源及校验 Token 是否在操作期间变化。仅在已忽略的 `tmp/git-setup/` 放置必要短期 helper，文件不含 Token；该过程不依赖安装 git-setup Skill，也不修改上述普通 Git 接入。
 
 1. 核对选定 remote 的完整 HTTPS 地址与本节目标一致。捕获而不回显 URL 匹配后的 `http.extraHeader`；若存在 Authorization、Proxy-Authorization 或 Cookie 鉴权冲突，停止并修复原来源。
 2. 构造干净的子进程环境：清除继承的 `GIT_CONFIG_*` 注入、`GIT_TRACE*`、`GIT_CURL_VERBOSE`、`GH_TOKEN`、`GITHUB_TOKEN`、企业版 Token 及旧的凭证传输变量。宿主通过进程配置声明的 `safe.directory` 仅保留具体绝对路径及清空列表的空值，合并到本次配置；不保留 `*`、递归通配或相对路径，也不修改全局信任。
