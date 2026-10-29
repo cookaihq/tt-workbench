@@ -4,9 +4,11 @@
 
 ## 仓库与操作范围
 
+本项目的主仓为 GitHub `cookaihq/tt-workbench`，主要远端为 `origin`。2026-10-29 用户明确选择后，仓库级默认推送远端设为 `remote.pushDefault=origin`，`main` 跟踪 `origin/main`，远端默认分支记录为 `origin/HEAD -> origin/main`。默认目标配置不构成自动推送授权；凭证仍按下文的已选来源和按次鉴权方式使用。
+
 远端 `origin` 的读取与推送地址均为 `https://github.com/cookaihq/tt-workbench.git`。2026-10-29 使用仓库独立 Token 完成接入及读取回读；GitHub 返回账号为 `cookaihq`，远端默认分支为 `main`，当次可见提交为 `6bf7342a8063ab77295a07ffc463d8ba120da518`。
 
-本次只验证身份、实际 remote 配置和 `ls-remote` 可见引用，未 fetch、合并、提交或推送；本地与远端历史关系、推送权限及 Release 均未验证。后续发布前重新读取远端并检查历史，不能把这次接入当作历史已同步。
+首次接入只验证身份、实际 remote 配置和 `ls-remote` 可见引用，当时未 fetch、合并、提交或推送，也未验证本地与远端历史关系、推送权限及 Release。后续发布前重新读取远端并检查历史，不能把首次接入当作历史已同步。
 
 本仓是独立仓库；与原 tannt 仓库的关系见 [ADR 0005](../adr/0005-independent-workbench-repository.md)。目录嵌套、相同 URL 或相邻目录不证明管理关系。初检只有主检出，没有登记子仓或子模块。每次操作先核对实际检出：
 
