@@ -5,8 +5,8 @@
 /.agents/
 /.claude/
 /node_modules/
-/.scratch/
 /.system/
+/.scratch/
 .DS_Store
 *.log
 /.workbench-runtime/
