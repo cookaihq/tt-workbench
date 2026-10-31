@@ -1,4 +1,5 @@
 'use strict';
+const path = require('node:path');
 const { FnsLocalUI } = require('./fns-local-ui.js');
 const FIELDS = [
   ['configSyncOtherDirs', '增加目录同步', '额外纳入同步的库内目录'],
@@ -16,26 +17,54 @@ const reasonFor = (notes, field, rule) => notes?.find(note => noteKey(note.field
 class FnsUI {
   constructor(view) { this.view = view; this.service = view.plugin.fns; this.field = FIELDS[0][0]; this.generation = 0; this.busy = false; }
   build(parent) { this.panel = parent.createDiv({ cls: 'tw-fns-panel' }); this.panel.hidden = true; }
-  active() { return !this.view.closed && this.view.pageScope === '@fns'; }
+  active() { return !this.disposed && !this.view.closed && this.view.pageScope === '@fns'; }
+  fileChanged(filename) {
+    if (!this.active() || typeof filename !== 'string') return;
+    const configDir = this.service.options.configDir || '.obsidian';
+    filename = filename.replace(/\\/g, '/');
+    const paths = [`${configDir}/plugins/fast-note-sync/data.json`, `${configDir}/plugins/fast-note-sync/manifest.json`,
+      `${configDir}/community-plugins.json`, '.gitignore', '.system/workbench/runtime.jsonc'];
+    // Remember the selected runtime path when reading the page. Ordinary note
+    // events should not resolve configuration or start an FNS inspection.
+    if (!paths.includes(filename) && filename !== this.statePath && !['config/fns-config', '.fns-config'].includes(filename)) return;
+    if (!this.busy) ++this.generation;
+    clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(() => { this.refreshTimer = null; void this.refresh(); }, 150);
+  }
   async readReport() {
     const report = await this.service.inspect();
-    if (report.application?.code === 'PROTECTED_SCOPE' && !report.blocked) {
+    if (this.active() && report.application?.code === 'PROTECTED_SCOPE' && !report.blocked) {
       try { report.localProtection = await this.view.plugin.inspectLocalProtection(); }
       catch { report.localProtection = null; }
     }
     return report;
   }
-  async refresh() {
-    if (!this.active() || this.busy) return;
-    const generation = ++this.generation;
-    try {
-      const report = await this.readReport();
-      if (generation !== this.generation || !this.active()) return;
-      this.report = report; this.error = ''; this.render();
-    } catch (error) {
-      if (generation !== this.generation || !this.active()) return;
-      this.error = error.message; this.render();
+  refresh() {
+    if (!this.active() || this.busy) return Promise.resolve();
+    clearTimeout(this.refreshTimer); this.refreshTimer = null;
+    ++this.generation; this.refreshRequested = true;
+    this.refreshPromise ||= this.drainRefreshes().finally(() => { this.refreshPromise = null; });
+    return this.refreshPromise;
+  }
+  async drainRefreshes() {
+    while (this.refreshRequested && this.active() && !this.busy) {
+      this.refreshRequested = false;
+      const generation = this.generation;
+      try {
+        if (this.service.vault) this.statePath = path.relative(this.service.vault, path.join(this.service.data, 'state.json')).replace(/\\/g, '/');
+        const report = await this.readReport();
+        if (generation !== this.generation || !this.active() || this.busy) continue;
+        this.report = report; this.error = ''; this.render();
+      } catch (error) {
+        if (generation !== this.generation || !this.active() || this.busy) continue;
+        this.error = error.message; this.render();
+      }
     }
+    this.refreshRequested = false;
+  }
+  leave() {
+    ++this.generation; this.refreshRequested = false;
+    clearTimeout(this.refreshTimer); this.refreshTimer = null;
   }
   button(parent, title, callback, primary = false) {
     const button = this.view.button(parent, title, title, callback);
@@ -48,13 +77,18 @@ class FnsUI {
     ++this.generation;
     this.busy = true; this.message = '正在处理…'; this.render();
     try {
+      await this.refreshPromise;
       const result = await action();
       this.message = result?.message || (result?.status === 'published' ? `v${result.version} 已推送；其他设备仍需接收并应用。` : '检查已完成。');
       this.error = '';
     } catch (error) { this.error = error.message; this.message = ''; }
     finally {
+      const actionError = this.error;
       this.busy = false;
-      try { this.report = await this.readReport(); } catch (error) { this.error ||= error.message; }
+      if (this.active()) {
+        await this.refresh();
+        if (actionError) this.error = actionError;
+      }
       if (this.active()) this.render();
     }
   }
@@ -304,6 +338,6 @@ class FnsUI {
     const id = this.report.recovery.split('/').at(-1);
     this.dialog('恢复上次应用前的规则', dialog => dialog.createEl('p', { text: '仅当配置自上次操作后没有变化时恢复；若发现后来修改，将停止并保留现场。' }), '确认恢复', () => this.service.recover(id));
   }
-  dispose() { ++this.generation; this.localUI?.dispose(); for (const d of this.view.contentEl.querySelectorAll('.tw-fns-modal')) d.remove(); }
+  dispose() { this.disposed = true; this.leave(); this.localUI?.dispose(); for (const d of this.view.contentEl.querySelectorAll('.tw-fns-modal')) d.remove(); }
 }
 module.exports = { FnsUI };

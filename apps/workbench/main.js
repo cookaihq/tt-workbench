@@ -205,21 +205,24 @@ class WorkbenchView extends ItemView {
       }
     }));
     this.registerEvent(this.app.vault.on("delete", file => {
-      this.refreshList();
+      this.refreshList({ automatic: true });
       if (file.path === this.selectedPath) {
         ++this.sequence;
         this.clearBody();
         this.showError(new NoteReadError("NOT_FOUND", "这份笔记已不存在，请选择其他笔记。"));
       }
     }));
-    this.registerEvent(this.app.vault.on("create", () => this.refreshList()));
+    this.registerEvent(this.app.vault.on("create", () => this.refreshList({ automatic: true })));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
-      this.refreshList();
+      this.refreshList({ automatic: true });
       if (oldPath === this.selectedPath) void this.openNote(file.path);
     }));
     this.registerEvent(this.app.metadataCache.on("changed", file => {
-      if (isBusinessPath(file.path)) this.refreshList();
+      if (isBusinessPath(file.path)) this.refreshList({ automatic: true });
     }));
+    // Raw events include hidden plugin settings and runtime receipts, which
+    // normal business-note events do not reliably report.
+    this.registerEvent(this.app.vault.on("raw", filename => this.fnsUI.fileChanged(filename)));
     this.issueTimer = window.setInterval(() => { if (!this.closed && this.issueUI.active()) void this.issueUI.refresh({ automatic: true }); }, 5000);
   }
 
@@ -314,8 +317,10 @@ class WorkbenchView extends ItemView {
     else { this.noteInfoEl.createEl("h2", { text: "从这里开始" }); this.bodyEl.createEl("p", { text: scope === "@projects" ? "创建一个项目，记录共同目标与资料。" : scope === "@tasks" ? "任务会在这里显示进度、下一步和相关笔记。" : "选择一份笔记，直接在这里阅读。", cls: "tw-empty" }); this.setStatus("", "empty"); }
   }
 
-  refreshList() {
+  refreshList({ automatic = false } = {}) {
     if (!this.listEl || this.closed) return;
+    if (automatic && this.pageScope === "@fns") return;
+    if (this.pageScope !== "@fns") this.fnsUI?.leave();
     let files;
     try { files = this.reader.list(); } catch (error) { this.showError(error); return; }
     this.allWorkEntries = this.workUI.catalog(files);
