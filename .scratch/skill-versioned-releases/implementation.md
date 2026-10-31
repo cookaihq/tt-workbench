@@ -1,10 +1,10 @@
 # Skill 独立版本与批次发布：实施记录
 
-2026-10-31。已按[已确认规格](spec.md)修改正式源，完成本机测试、构建、隔离安装和两宿主新会话验收。用户随后确认工作台与 Skill 同次更新共用工作台 Tag，本记录已更新为联合发布候选，并补完发布链、构建和更新器回归。用户现已明确要求“提交推送发新版本”，开始按本记录准备 `v0.26.0` 的一次联合发布；实际公开结果在发布后补记，tannt 正式安装仍保持原状。实际验证范围及缺口见下文。
+2026-10-31。已按[已确认规格](spec.md)修改正式源，完成本机测试、构建、隔离安装和两宿主新会话验收。按用户确认的工作台与 Skill 同次更新共用 Tag 要求，已于 14:34:22（Asia/Shanghai）正式发布 [v0.26.0](https://github.com/cookaihq/tt-workbench/releases/tag/v0.26.0)，Tag 固定到 `4e26ba17a3315f33ee28d94a58d17a5bf4fcc5f3`。工作台 0.26.0 和五项 Skill 1.0.0 在同一 Release 交付，公开附件与正式包安装已核验。tannt 日常安装保持 0.25.1；实际验证范围及限制见下文。
 
-## 候选与工作区
+## 发布范围与工作区
 
-| 对象 | 本次候选 |
+| 对象 | 本次发布 |
 | --- | --- |
 | 工作台 | `0.26.0` |
 | 联合发布 Tag | `v0.26.0`（不另发 `skills-20261031.1`） |
@@ -13,7 +13,7 @@
 
 开发检出保持 `main`，接手及验收基线 HEAD 为 `70aff73867efda63e88920f50c9324373b695713`。本机验收阶段未暂存、提交、创建分支／Worktree 或推送。接手时已有的 Git 凭据修复记录、Git/发布文档及其入口修改均保留；共享文档只增加本功能所需的发布和联动说明。发布提交纳入必要共享文档，独立的 `.scratch/git-credential-repair/implementation.md` 修改和 `.scratch/release-knowledge-docs/` 记录留在工作区。未整理或回滚其他会话的文件。
 
-完整未提交文件的最新内容摘要保存在 `tmp/skill-versioned-releases/source-snapshot-combined.json`，其中明确包含接手前修改，不能把整个工作区差异都归为本功能。此前 `source-snapshot.json` 保留为旧候选过程证据。正式发布仍须按审阅后的文件清单形成确定提交。
+验收阶段未提交文件的内容摘要保存在 `tmp/skill-versioned-releases/source-snapshot-combined.json`，其中明确包含接手前修改，不能把整个工作区差异都归为本功能。此前 `source-snapshot.json` 保留为旧候选过程证据。已按审阅文件清单形成发布提交，具体提交和真实发布结果见末节。
 
 ## 实现与关联调整
 
@@ -65,13 +65,13 @@
 | `tt-workbench.zip` | `d2298f11a2c5b6fa94a154ee9ca22a93a4af0134fdfa205604ed22ed459589dc` |
 | `skills-release.json` | `3d887970d96a58df9df0e985dffd5462aeefd4d8b09276bce3e0d426b21f850f` |
 
-清单登记了五项的版本、固定附件名称、大小、包摘要与完整内容摘要。候选尚未对应新提交；公开发布前须固定审阅后的提交并重新验证其构建，而不能把当前 HEAD 当作已包含这些未提交实现。
+清单登记了五项的版本、固定附件名称、大小、包摘要与完整内容摘要。上述摘要是提交前本机候选的历史证据；正式提交经过 LF 规范化，CI 使用 Node.js 22 构建，最终公开附件的摘要见末节，不能混用候选压缩字节与正式附件。
 
 ## 目标库文档与跨设备入口
 
 已使用 tannt 自己的 `AGENTS.md`、业务规则及已安装的 `tt-capture` / `tt-update-note` 流程，局部维护以下内容，保留已有属性、ID、创建时间和无关段落：
 
-- 本次准备统一到 `1.项目/仓库设计/版本记录/v0.26.0.md`，包含工作台与五项 Skill 版本。原 `版本记录/skills-20261031.1.md` 已标记“已并入 v0.26.0，未发布”，保留历史依据；版本索引仅列一项当前待发布版本。
+- 本次记录统一到 `1.项目/仓库设计/版本记录/v0.26.0.md`，包含工作台与五项 Skill 版本。原 `版本记录/skills-20261031.1.md` 已标记“已并入 v0.26.0，未发布”，保留历史依据；该“未发布”仅指已取消的拆分 Tag，版本索引登记实际发布的 v0.26.0。
 - 更新 `Skill/内置Skill.md`、`工作台功能/系统与集成.md`、`设计与灵感/讨论索引.md`、`版本记录/版本索引.md`。
 - 更新目标库 `docs/agents/workbench-tools.md`，区分完整插件根与独立 Skill 的 runtime，说明新会话实际加载核验。沿用原有 Agent 入口，不另建重复规则源。
 
@@ -81,11 +81,33 @@
 
 ## 验证限制与收尾
 
-- GitHub Actions、真实草稿/上传/公开及远端附件回读未执行；工作流 YAML 已解析，发布协议通过合成服务测试。发布冷却缓存的跨 Runner 行为尚无真实 CI 证据。
+- GitHub Actions、同一草稿上传与公开、远端附件回读均已执行通过。真实 CI 执行了冷却缓存恢复／保存步骤；本次没有触发发布限流，跨 Runner 恢复一个尚未结束的冷却窗口仍只有合成测试证据。
 - 真实 Obsidian 验证安装版本和刷新结果；更新按钮、说明、查询失败、兼容不足及中断恢复在独立 GUI 夹具完成。该夹具提供轻量 Obsidian DOM 适配，不能代表真实 Obsidian 的全部外围集成和弹窗。DevTools 粘贴保护未绕过；原 Ego 空间 25 消失后，先完成独立工作并取得用户明确授权，再新建空间 26 补验，最后 `finish({keep: []})` 成功，未保留页面。
 - 实际新会话验收覆盖 `tt-update-note`；其余四项完成包结构、引用、工具及注册检查，没有分别执行真实业务或隐式触发反例。旧 Agent 会话可能缓存旧指令，未声称已自动切换。
-- 本轮实际系统仅 Windows；macOS/Linux、其他宿主和其他设备未执行。现有声明的平台不等于本轮全部实测。
+- 本机 GUI、安装及宿主验证在 Windows 执行，CI 在 Linux / Node.js 22 执行工程测试和发布。macOS/Linux 图形客户端、其他宿主和其他设备未实测；Linux CI 不代表这些用户入口已经通过。
 - 本机限流/恢复回归通过不意味着忽略锁的第三方程序也被互斥约束；安装与发布保护范围遵守正式文档。
 - 本次验收服务只监听回环地址，已停止。隔离库与日志保留在已忽略的 `tmp/skill-versioned-releases/`，不发布到软件仓库；未删除其他会话资源。
 
-用户已授权提交、推送和公开发布 `v0.26.0` 的一个联合 Release 和五项独立 1.0.0；本次授权不包含 tannt 正式升级。发布前已用本仓唯一 Token 核验账号 `cookaihq`、远端 main 与上述基线相同，最新正式版为 `v0.25.2`，没有本次同名 Tag 或 Release。Git 直连 TLS 失败后按项目规则使用既有本机代理，未改变持久网络配置。按审阅清单固定提交，再通过手动工作流在同一草稿上传并核验全部附件、一次公开；实际结果补记在本文件，证据保存在 `tmp/release/v0.26.0/`。不得按旧计划另建 `skills-20261031.1`，也不能把开发试装当作 tannt 已采用正式版。
+用户已授权提交、推送和公开发布 `v0.26.0` 的一个联合 Release 和五项独立 1.0.0；本次授权不包含 tannt 正式升级。发布前已用本仓唯一 Token 核验账号 `cookaihq`、远端 main 与上述基线相同，当时最新正式版为 `v0.25.2`，没有本次同名 Tag 或 Release。Git 直连 TLS 失败后按项目规则使用既有本机代理，未改变持久网络配置。已通过手动工作流在同一草稿上传并核验全部附件、一次公开；证据保存在 `tmp/release/v0.26.0/`。没有创建 `skills-20261031.1`，也未将开发试装写成 tannt 已采用正式版。
+
+## 发布执行记录
+
+- 已将明确审阅的 49 个文件提交为 `24cb94145704ca43617534bae66c00d038c5a023`，保持 `main`；接手前两份独立开发记录留在工作区。新引用的全部可达历史审查覆盖 734 个 blob、5,182,497 字节，无跳过和已知秘密／大文件发现；该扫描不证明不存在全部秘密。
+- 从固定提交导出 452 个文件，逐项核对 Git blob 字节及完整路径集合。Windows 自带 tar 最初把部分中文模板名解码错误，那个导出及产物已标记废弃；重新在空目录用 Python tarfile 解包后，文件集合与提交完全相同。没有修改正式源码来适配这一工具问题。
+- 固定提交的有效构建为 `tmp/release/v0.26.0/artifacts-committed/`，共九个附件、1803 个受管文件。与此前已测试候选的路径集合完全一致，实际文本变化仅来自 Git 的 LF 规范化及派生 Skill 清单摘要。重新完成隔离安装、双宿主注册、两个更新服务识别及五项 runtime 只读命令；证据为 `source-exact-verification.json`、`candidate-comparison.json` 和 `committed-install-verification.json`。
+- 首次推送因项目 Token 缺少工作流写权限被 GitHub 拒绝；用户补齐后成功推送 `24cb941` 并回读。首次 dispatch 又被明确报告缺少 `actions=write`；用户补齐同一 Token 的 Actions 权限后启动成功，没有改用其他凭据。GitHub dispatch 不接受完整 SHA 作为 ref，改用已核验指向目标提交的 `main`，并核对实际运行的 `head_sha`；工作流 checkout 仍固定 `github.sha`。失败证据保留在 `push-diagnostic.json`、`last-api-failure.json` 与首轮记录中。
+- 首轮 [CI 41176649543](https://github.com/cookaihq/tt-workbench/actions/runs/41176649543) 在测试阶段停止，未执行发布。旧 FNS CLI 测试在 Linux 上要求 Windows/macOS 稳定身份，313 项通过、1 项失败、7 项跳过。提交 `4e26ba1` 仅修正该测试：支持的平台继续验证正常流程，其余平台断言明确拒绝并保留配置。本机相关 11 项通过，生产 FNS 行为未改变；最终提交的九个附件与前一个提交的本机构建逐字节一致。
+- 最终 [CI 41177108137](https://github.com/cookaihq/tt-workbench/actions/runs/41177108137) 在 Linux / Node.js 22 上运行 321 项测试，314 通过、7 项原有可选 FNS 测试跳过、0 失败。随后完成构建、草稿全部附件上传与下载核验、公开、正式附件回读；发布 Tag 为 `v0.26.0`，提交 `4e26ba17a3315f33ee28d94a58d17a5bf4fcc5f3`，Release ID 为 `429766401`，已核验为 Latest。完整 job 日志已保存；CI Artifact 保留在 GitHub，额外下载该归档两次超时，本机另存了所有九个正式 Release 附件。
+- 公开下载九个附件均核对大小和 GitHub SHA-256 digest，清单序号 1、五项 1.0.0、包内内容和固定提交一致。ZIP 1804 项逐文件与更新包完全一致，未发现损坏。Node.js 22 / 24 压缩字节不同，未将不同 gzip 摘要误判为 Skill 内容改变；包内 manifest、内容摘要与文件字节一致。
+- 正式下载包在隔离库再次安装，双宿主入口、五项版本及五项 runtime 只读命令通过。匿名 API 查询触发 GitHub 限流，两个生产更新器保持当前资源并提示冷却至 2026-10-31 15:07:49（Asia/Shanghai）；没有提前重试。另通过本仓授权 Token 的临时请求适配器读取真实 GitHub，两个生产更新服务分别识别工作台 0.26.0 与同一 Release 的完整 Skill 清单。这不等于匿名查询已恢复，也没有向产品添加个人凭据。
+- tannt 六份仓库设计文档已补齐正式版本、发布日期、提交、链接、文档对应和实际验证范围，原 YAML、ID、创建时间保留；证据 `published-knowledge-docs.json`。日常安装仍为 0.25.1，未升级或改写其 Skill 资源。
+- 没有创建发布分支或 Worktree。清理本次 `source/`、`source-exact/`、`source-final/` 三个临时源码导出目录时，自动执行策略返回 `blocked by policy`，未给出更具体原因；未执行删除，目录保留在已忽略的 `tmp/release/v0.26.0/`。两个有效导出重新核对与对应提交完全一致；最初的 Windows tar 错误导出保留为废弃过程材料，不用作发布输入。产物、日志和校验记录均在这些导出目录之外。
+
+| 正式附件 | SHA-256 |
+| --- | --- |
+| `release.json` | `fa2d677c59fd69ef8130553c962da62038be765a3567f8a95dbb39f47e6fc75b` |
+| `tt-workbench.bundle.json.gz` | `9d1c96a93aa940912d58c3449bdb0ece2d53474c90d00be9e0c4f46079fcbd2b` |
+| `tt-workbench.zip` | `1524900379d7c73259f36716196cc3b4cebfb9740f34cc71e46af400477d69c8` |
+| `skills-release.json` | `d73938266521ab925b92af5baa39908e40d77703c1926e3e394e6a785d873036` |
+
+所有九项摘要见 `published-release.json`；CI 证据见 `ci-verification.json` / `ci-final-job.log`，正式安装及联网验证见 `published-install-verification.json`，ZIP 字节核验见 `published-zip-verification.json`，临时目录保留状态见 `cleanup-status.json`。发布收尾记录另行提交到 main，正式 Tag 保持指向上述发布源码提交。
