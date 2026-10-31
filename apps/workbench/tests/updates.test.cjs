@@ -25,12 +25,12 @@ async function fixture(t) {
     const releaseId = ++id, bundleId = ++id;
     const encoded = packages.encodeBundle(data);
     assets.set(releaseId, Buffer.from(JSON.stringify(data.release))); assets.set(bundleId, encoded);
-    latest = { draft: false, prerelease: false, assets: [{ id: releaseId, name: 'release.json', size: assets.get(releaseId).length }, { id: bundleId, name: 'tt-workbench.bundle.json.gz', size: encoded.length }] };
+    latest = { tag_name: 'v' + data.release.version, draft: false, prerelease: false, assets: [{ id: releaseId, name: 'release.json', size: assets.get(releaseId).length }, { id: bundleId, name: 'tt-workbench.bundle.json.gz', size: encoded.length }] };
     return { releaseId, bundleId, encoded };
   };
   const request = async url => {
     requests.push(url);
-    if (url.endsWith('/releases/latest')) return Buffer.from(JSON.stringify(latest));
+    if (url.includes('/releases?')) return Buffer.from(JSON.stringify([latest]));
     const value = assets.get(Number(url.split('/').at(-1)));
     if (!value) throw Error('missing');
     return value;
@@ -64,6 +64,45 @@ test('网络错误、相同版本、本地较新分别报告；失败不冒充�
   const h = await fixture(t); h.publish(bundle('0.20.0')); assert.equal((await h.service.check()).kind, 'ahead');
   h.publish(bundle('0.21.0')); assert.equal((await h.service.check()).kind, 'current');
   h.service.request = async () => { throw Error('offline'); }; assert.equal((await h.service.check()).kind, 'error');
+});
+
+test('跨页读取工作台正式版本，忽略 GitHub Latest、Skill 批次和草稿；尊重限流冷却', async t => {
+  const h = await fixture(t), published = h.publish(bundle('0.22.0'));
+  const calls = [];
+  h.service.request = async url => {
+    calls.push(url);
+    if (new URL(url).searchParams.get('page') === '1') return Buffer.from(JSON.stringify(Array.from({ length: 100 }, (_, i) => ({ tag_name: 'skills-20261031.' + (i + 1), draft: false, prerelease: false }))));
+    if (new URL(url).searchParams.get('page') === '2') return Buffer.from(JSON.stringify([
+      { tag_name: 'v9.0.0', draft: true }, { tag_name: 'v8.0.0', prerelease: true },
+      { tag_name: 'v0.22.0', assets: [{ id: published.releaseId, name: 'release.json' }, { id: published.bundleId, name: 'tt-workbench.bundle.json.gz', size: published.encoded.length }] }
+    ]));
+    return h.assets.get(Number(url.split('/').at(-1)));
+  };
+  assert.equal((await h.service.check()).latest, '0.22.0'); assert.ok(calls.some(url => url.includes('page=2'))); assert.ok(!calls.some(url => url.endsWith('/latest')));
+  let count = 0;
+  h.service.request = async () => { count++; throw Object.assign(Error('limited'), { code: 'RATE_LIMITED', retryAfter: new Date(Date.now() + 60000).toISOString() }); };
+  assert.equal((await h.service.check()).kind, 'error'); await h.service.check(); assert.equal(count, 1);
+});
+
+test('正式核心更新拒绝夹带开发 Skill，下载包不能换掉已检查的管理来源', async t => {
+  const h = await fixture(t), { workbench } = require('../../../lib/agent-skills/tests/fixtures.cjs');
+  const candidate = workbench(); h.publish(candidate);
+  assert.equal((await h.service.check()).kind, 'error');
+  candidate.release.skillSource = { kind: 'release', batch: 'skills-20261031.1', sha256: 'a'.repeat(64) };
+  const published = h.publish(candidate); assert.equal((await h.service.check()).kind, 'available');
+  candidate.release.skillSource.sha256 = 'b'.repeat(64);
+  const tampered = packages.encodeBundle(candidate);
+  h.assets.set(published.bundleId, tampered); h.service.status.bundleSize = tampered.length;
+  assert.equal((await h.service.install()).kind, 'error');
+  assert.equal(JSON.parse(await fs.readFile(path.join(h.target, 'manifest.json'))).version, '0.21.0');
+});
+test('工作台下载限流保留冷却截止时间，重新检查不会提前请求', async t => {
+  const h = await fixture(t); h.publish(bundle('0.22.0')); await h.service.check();
+  let calls = 0;
+  h.service.request = async () => { calls++; throw Object.assign(Error('cooldown'), { code: 'RATE_LIMITED', retryAfter: new Date(Date.now() + 60000).toISOString() }); };
+  assert.equal((await h.service.install()).kind, 'error');
+  assert.equal((await h.service.check()).kind, 'error'); await h.service.install();
+  assert.equal(calls, 1); assert.equal(JSON.parse(await fs.readFile(path.join(h.target, 'manifest.json'))).version, '0.21.0');
 });
 test('本机修改和并发安装锁均保留旧插件', async t => {
   const h = await fixture(t); h.publish(bundle('0.22.0')); await h.service.check();

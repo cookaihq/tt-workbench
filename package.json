@@ -1,12 +1,13 @@
 {
   "name": "tt-workbench",
-  "version": "0.25.2",
+  "version": "0.26.0",
   "private": true,
   "description": "Independently installable Obsidian workbench and Agent tools",
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "node scripts/workbench/test.mjs",
     "build": "node scripts/workbench/build.mjs",
-    "install-plugin": "node scripts/workbench/install.mjs"
+    "install-plugin": "node scripts/workbench/install.mjs",
+    "build-skills": "node scripts/agent-skills/build-release.mjs"
   }
 }

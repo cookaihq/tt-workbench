@@ -6,13 +6,13 @@
 
 ## 检查与安装
 
-更新器读取 GitHub 最新正式 Release，取得 `release.json` 与 `tt-workbench.bundle.json.gz` 两个附件。只有包版本高于运行版本才提示安装。检查使用 HTTPS，无需本机 Git 或 GitHub 凭据；网络失败、缺包与配置错误分别显示为未能检查，不冒充最新版。
+更新器分页读取 GitHub 正式 Release，选择合法 `v<版本>` 的工作台版本，取得 `release.json` 与 `tt-workbench.bundle.json.gz`。仅 Skill 的 `skills-*` 发布不参与工作台版本选择，联合发布仍按工作台版本识别，查询不依赖全仓 latest。只有包版本高于运行版本才提示安装。检查使用 HTTPS 和 15 秒总预算，无需本机 Git 或 GitHub 凭据；网络失败、缺包与配置错误分别显示为未能检查，不冒充最新版。
 
 用户点击安装后，使用检查时固定的附件 ID 下载包，核对大小、路径及每个文件的 SHA-256，并核对插件版本和最低 Obsidian 版本。本机受管理文件被修改、未知同名文件、符号链接、并发安装或下载损坏会停止替换。
 
 安装保留本机 `data.json` 等非分发文件；准备目录和旧版恢复目录位于 `<配置目录>/plugins/tt-workbench-recovery/`。同机并发使用 `<配置目录>/plugins/tt-workbench.install-lock`。普通替换失败尝试恢复旧目录；进程在切换间被强制结束时需要依据锁、恢复目录及目标现状人工核对，不能直接删除锁或恢复目录。
 
-安装成功后提示重启 Obsidian；重启前的运行版本保持原值。软件更新不操作知识库 Git、业务笔记、Skill 注册或用户级规则入口。正确指向插件内 Skill 的链接在插件路径保持时继续指向更新后的资源。
+安装成功后提示重启 Obsidian；重启前的运行版本保持原值。软件更新不操作知识库 Git、业务笔记、Skill 注册或用户级规则入口。独立 Skill 由自己的清单核验，工作台升级原样保留其版本及用户文件；核心文件继续按工作台清单核验。发现链接位置保持，Skill 单独更新见[安装与更新入口](agent-skill-setup.md)。
 
 目标库自己的 `AGENTS.md`、规则和概念也保留原位；软件包中的同名文档只更新软件资源。更新后的 Skill 仍沿[目标库实际入口](../agents/package-layout.md#目标库规则读取)读取业务／场景正文。若目标库曾明确引用软件默认规则，应按其采用约定核对变化，不能把安装成功当作该库已接受业务规则变更。
 
@@ -31,9 +31,12 @@
 
 开始前读取并遵守[发布工作区与收尾](../agents/git-access-commit-and-release.md#发布工作区与收尾)，发布验收后按该规则完成临时资源清理。
 
-1. 更新源码及 `package.json`、`apps/workbench/manifest.json` 的同一版本。
+同时必须读取并执行[发布时同步仓库设计文档](../agents/release-knowledge-docs.md)：发布前更新 tannt「仓库设计」项目中受影响的文档，发布后补齐实际版本及验证记录。
+
+1. 按 [发布范围与 Tag 选择](../agents/git-access-commit-and-release.md#发布范围与-tag-选择)固定本次发布范围，更新源码及 `package.json`、`apps/workbench/manifest.json` 的同一版本。工作台与 Skill 同时更新时按 [联合发布入口](skill-releases.md#本地准备)准备同一 Release 的全部附件。
 2. 执行 `npm test`、`npm run build`，验证完整包在隔离库可安装及受影响功能。
-3. 在明确的发布授权内创建 GitHub Release，同时上传 `dist/tt-workbench.zip`、`dist/release.json` 和 `dist/tt-workbench.bundle.json.gz`。ZIP 用于用户首次安装，更新器继续读取后两个附件；它们必须来自同一次构建。`dist/plugin/` 是展开的完整安装目录，不能只取三个 Obsidian 常见入口文件。详细产物及验收要求见[开发说明](development.md)。
+   正式包必须按 [Skill 发布说明](skill-releases.md#本地准备)使用固定清单和完整附件；联合发布使用本次待发布清单，仅工作台发布使用此前正式清单。默认构建只生成开发候选，不能作为线上更新发布。
+3. 在明确的发布授权内创建 GitHub Release。仅工作台发布同时上传 `dist/tt-workbench.zip`、`dist/release.json` 和 `dist/tt-workbench.bundle.json.gz`；联合发布由上述 Skill 工作流将 `dist/skills/<Tag>/` 的工作台附件、清单和选中 Skill 包上传同一草稿，核验后一次公开。ZIP 用于用户首次安装，更新器继续读取后两个工作台附件；它们必须来自同一次构建。`dist/plugin/` 是普通构建展开的完整安装目录，不能只取三个 Obsidian 常见入口文件。详细产物及验收要求见[开发说明](development.md)。
 
 源码远端已接入 `https://github.com/cookaihq/tt-workbench.git`，凭证与发布范围见[Git 仓库接入、提交与版本发布](../agents/git-access-commit-and-release.md)。本次接入只验证 Git 读取；自动化测试使用模拟的发布响应和真实本地文件安装，不代表真实 Release 发布或线上下载已验证。
 

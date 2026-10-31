@@ -702,6 +702,9 @@ module.exports = class TTWorkbenchPlugin extends Plugin {
       await this.saveData(next); this.settings = next; this.agentRules = reader;
     };
     this.skills = new SkillManager({ vault: this.app.vault.adapter.getBasePath(), packageRoot: moduleRoot, configDir: this.app.vault.configDir });
+    const { SkillUpdates } = localRequire('./lib/agent-skills/updates.cjs');
+    this.skillUpdates = new SkillUpdates({ manager: this.skills, repository: () => this.updates.repository, workbenchVersion: this.manifest.version,
+      beforeInstall: async agent => { await this.beforeSkillWrite(agent); await assertWorkbenchExclusions(this.fns); } });
     this.beforeSkillWrite = async agent => {
       const runtime = await this.fns.runtime.inspect();
       if (runtime.enabled) {

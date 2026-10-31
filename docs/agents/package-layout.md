@@ -1,6 +1,8 @@
 # 软件位置与目标知识库
 
-`<软件根>` 是工作台源码仓库根，或完整安装包根（通常为 `<库>/<配置目录>/plugins/tt-workbench`）。通过发现链接读取 Skill 时，先解析 Skill 目录的真实路径，再从 `skills/<名称>/` 回到软件根。软件根包含 `skills/manifest.jsonc`、`lib/`、`scripts/`、`docs/` 和 `templates/`。
+`<软件根>` 是本次执行工具的确定资源根：工作台源码仓库根、完整插件安装根（通常为 `<库>/<配置目录>/plugins/tt-workbench`），或独立 Skill 自带的 `runtime/`。通过发现链接读取 Skill 时，先解析其真实目录；同目录存在 `skill-package.json` 就使用其中的 `runtime/`，仅旧安装与源码开发从 `skills/<名称>/` 向上两级回到根。所选根中的 `lib/`、`scripts/`、`docs/`、`templates/` 属于同一版本，不用工作台当前工具替换独立包内工具。
+
+管理 Skill 的安装与更新使用完整插件根的 `scripts/agent-skills/install.mjs`；活动页面清单来自该插件的 `skills/manifest.jsonc`。各 Skill 的实际版本来自其自身 `SKILL.md` 的 `metadata.version`。独立包更新、正式清单与管理边界见[Skill 版本与发布](../workbench/skill-releases.md)。
 
 `<库>` 是用户明确操作的知识库绝对路径，名称不限。软件文档中的相对链接以该文档所在目录为基准，`<软件根>/scripts/`、`lib/`、`skills/`、`templates/` 是工具资源；业务路径、实例 `config/`、`.agents/`、`.claude/`、Obsidian 配置和本机运行位置配置相对于目标库。两边均可有 `docs/`、`AGENTS.md` 和 `GLOSSARY.md`，不能按同名互换来源；目标库文档按其自己声明的基准解析。
 

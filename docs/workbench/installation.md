@@ -4,7 +4,7 @@
 
 ## 选择正确的安装包
 
-从官方仓库 [`cookaihq/tt-workbench`](https://github.com/cookaihq/tt-workbench/releases) 的最新正式 Release 下载 `tt-workbench.zip`。它包含一个顶层 `tt-workbench/` 文件夹，内部为完整插件和内置资源。自动生成的 `Source code` 是源码；`tt-workbench.bundle.json.gz` 供更新器读取，均不能代替可解压安装的 ZIP。
+从官方仓库 [`cookaihq/tt-workbench`](https://github.com/cookaihq/tt-workbench/releases) 的最新正式工作台 `v<版本>` Release 下载 `tt-workbench.zip`。`skills-…` 是独立 Skill 批次，不是工作台安装包。ZIP 包含一个顶层 `tt-workbench/` 文件夹，内部为完整插件和配套资源。自动生成的 `Source code` 是源码；`tt-workbench.bundle.json.gz` 供更新器读取，均不能代替可解压安装的 ZIP。
 
 需要桌面版 Obsidian，最低版本以包内 `manifest.json` 的 `minAppVersion` 为准。基础安装不需要 Node.js、Git 或构建工具。没有正式版本或完整附件时，请报告尚不可下载，不用克隆构建替代用户安装。
 
@@ -23,6 +23,8 @@
 - **无法在界面更新或需要离线处理**：可使用新包中的 `scripts/workbench/install.mjs` 与同版 `tt-workbench.bundle.json.gz`，显式传入目标库和配置目录。这是需要 Node.js 22 或更新版本的维护入口，参数见[开发说明](development.md#安装开发版本)与安装器 `--help`，不要求从源码构建。
 
 缺少校验清单、本机受管理文件被修改、同名冲突或未知链接时保留现场并说明原因。不要删除锁、恢复目录或用户文件来强行继续；恢复与迁移材料按当前设备约定处理。
+
+独立 Skill 更新后，已安装目录由各自的 `skill-package.json` 核验，不再用工作台最初交付的 Skill 哈希判为本机损坏。工作台安装器会保留这些独立包；检查现有安装时分别核验核心清单与各 Skill 清单。原始 ZIP 本身仍须完整匹配发布清单。带 `skillSource.kind: development` 的包只供明确的隔离开发测试，不能作为正式安装来源。
 
 ## 目标库规则与初始化
 

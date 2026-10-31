@@ -1,9 +1,18 @@
 ---
 name: tt-organize-agent-rules
 description: 整理当前电脑已有的全局 Agent 规则及外部引用：评估保留、丢弃和更新，提出主指令与集中存放的场景指令方案，确认后写入用户选择的正式规则源并修复入口、验证加载。用于旧规则整理或接入修复；日常新增编辑沿用规则维护场景。
+metadata:
+  version: "1.0.0"
+  workbench-min: "0.26.0"
+  node-min: "22.0.0"
+  platforms: "win32,darwin,linux"
+  hosts: "codex,claude"
+  release-notes: "首次独立版本：调用时报告实际版本，工具和文档随 Skill 固定分发。"
 ---
 
-从本 Skill 的真实路径（解析发现链接后）向上两级得到 `<软件根>`。先读取并执行 `<软件根>/docs/agents/package-layout.md` 的“目标库规则读取”：确认用户指定的库，沿该库实际 Agent 入口读取本次适用的范围、规则维护场景及概念。软件根用于工具，个人全局正文来自明确选择的 `<规则源>`；两者均不能代替目标库自己的规则。
+开始执行时，从本次加载的 SKILL.md 元数据读取 `name` 和 `metadata.version`，向用户提示“正在使用 <name> v<version>”。版本只取本文件；已有会话保留的旧内容不能冒称已加载磁盘新版。
+
+解析发现链接得到本 Skill 真实目录。存在同目录 `skill-package.json` 时，`<软件根>` 为同目录的 `runtime/`；源码开发时才向上两级取软件根。先读取并执行 `<软件根>/docs/agents/package-layout.md` 的“目标库规则读取”：确认用户指定的库，沿该库实际 Agent 入口读取本次适用的范围、规则维护场景及概念。软件根用于工具，个人全局正文来自明确选择的 `<规则源>`；两者均不能代替目标库自己的规则。
 
 ## 确认目标与事实
 

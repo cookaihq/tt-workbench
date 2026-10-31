@@ -25,7 +25,7 @@
 
 以下步骤用于首次安装。已有工作台请看[更新](#更新)；旧版 `tannt-workbench` 用户请看[改名迁移说明](docs/workbench/updates.md#从-tannt-改名迁移)。
 
-1. 打开 [Releases 下载页](https://github.com/cookaihq/tt-workbench/releases)，在最新正式版本的 **Assets（附件）** 中下载 **`tt-workbench.zip`**。页面自动生成的 `Source code` 是源码压缩包，不用于安装。
+1. 打开 [Releases 下载页](https://github.com/cookaihq/tt-workbench/releases)，在最新正式工作台 **`v<版本>`** 的 **Assets（附件）** 中下载 **`tt-workbench.zip`**。`skills-…` 是 Skill 更新批次；页面自动生成的 `Source code` 是源码压缩包，均不用于安装工作台。
 2. 退出 Obsidian，解压安装包，将里面的整个 **`tt-workbench` 文件夹**放入知识库的 `.obsidian/plugins/` 目录；没有 `plugins` 文件夹时创建它。
 3. 确认目录如下，并保留包内全部文件与子目录：
 
@@ -93,6 +93,8 @@ Obsidian 配置目录：.obsidian（如有自定义，请替换）
 | `tt-organize-agent-rules` | 整理规则并接入选定的规则源 |
 
 安装后，在目标知识库中新开 Agent 会话，检查 Skill 是否可用。外部 Agent 调用配套命令行工具需要 Node.js 22 或更新版本；网盘账号等服务按对应 Skill 的指引单独配置。详见[Skill 安装与使用](docs/workbench/agent-skill-setup.md)。
+
+每项 Skill 有自己的版本。页面显示已安装版本、可用新版与更新说明；点击「检查 Skill 更新」后按项更新。调用时 Agent 提示本次使用的名称和版本，更新后请在新会话核对。工作台升级会保留已采用的独立 Skill 版本。
 
 ## 更新
 

@@ -2,7 +2,9 @@
 
 本文中的 `<运行目录>` 按[本机运行记录](../rules/writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
 
-工作台「系统 → Skill 安装」采用列表与详情并排的 A 页面。页面显示当前知识库的名称及绝对路径，选择 Codex 或 Claude Code 后可安装单项或全部未安装项。清单、中文用途、示例与后续指引来自 `skills/manifest.jsonc`；资源版本跟随插件更新。
+工作台「系统 → Skill 安装」采用列表与详情并排的 A 页面。页面显示当前知识库的名称及绝对路径，选择 Codex 或 Claude Code 后可安装单项或全部未安装项。清单、中文用途、示例与后续指引来自 `skills/manifest.jsonc`；各 Skill 有自己的独立版本，页面从实际安装的 `SKILL.md` 元数据读取。
+
+点击「检查 Skill 更新」查询正式完整清单，查看各项可用版本、更新说明及兼容要求，再点击对应「更新至 v…」。两个已注册宿主共用同一安装包；更新未注册资源不会擅自注册入口。查询失败保留当前资源并显示未能确定结果，不显示“最新”。发布仓库沿用工作台版本设置。
 
 ## 状态与操作
 
@@ -24,17 +26,23 @@
 
 Codex 使用 `<库>/.agents/skills/<名称>`，Claude Code 使用 `<库>/.claude/skills/<名称>`，相对链接指向当前库安装插件的 `skills/<名称>`。自定义 Obsidian 配置目录由当前插件提供；CLI 使用安装副本并显式传 `--vault` 和适用的 `--config-dir`，不依赖开发检出或 Obsidian 进程。
 
+该 Skill 目录中的 `runtime/` 包含其确定版本的工具与参考文档。调用时按 SKILL.md 的路径规则定位，向用户提示“正在使用 <名称> v<版本>”；同一版本号仅在 SKILL.md 中人工维护，包清单和页面均由它生成或读取。
+
 ```text
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --check
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --skill tt-capture
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent claude
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action repair --skill tt-capture
 node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action remove --skill tt-capture
+node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --check-updates
+node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent codex --action update --skill tt-capture
 ```
 
 `--agent all` 明确处理两宿主；重复 `--skill` 可选多项，省略时安装活动清单。修复和移除必须指定名称。旧源迁接使用 `--action repair --skill <名称> --migrate-from "<已核实旧 skills 绝对目录>"`；该参数是操作者对具体旧来源的确认，不能用于任意覆盖。退役名称仅记录历史，普通安装不会清理清单外入口。
 
 `--check` 与 `--help` 只读。结果为逐宿主、逐项 JSON；有失败或跳过时退出码为 1，检查时只有所选项目全部已安装才为 0。检查结果另列 Git/FNS 隔离状态，已安装不等于允许下一次写入。
+
+`--check-updates` 也只读，可用 `--repository owner/repo` 明确仓库，否则读取工作台设置。更新选择单个检查宿主并明确 `--skill`，磁盘包仍由两宿主共用。更新前核验插件、恢复目录及安装锁的本机隔离，安装器不自动改 Git/FNS 配置。
 
 ## 旧前缀迁移
 
@@ -63,3 +71,7 @@ node "<插件目录>/scripts/agent-skills/install.mjs" --vault "<库绝对路径
 五个 Skill 都先执行[目标库规则读取](../agents/package-layout.md#目标库规则读取)：从发现链接解析软件工具位置，沿目标库实际 Agent 入口读取本次业务／场景正文。目标库可独立维护自己的规则；同名软件文档不自动覆盖它。缺项或工具能力冲突时先说明，安装或注册成功不等于规则已被宿主加载。
 
 更新插件保留已有发现入口，新 Skill 仍需显式安装。资源缺失时显示检查失败；先恢复完整插件资源再检查。实现与本机验收范围见[功能记录](../../.scratch/workbench-skill-installation/implementation.md)。
+
+采用独立版本后，更新工作台会核验并保留已经安装的 Skill，不用工作台附带版本覆盖或降级。旧无版本安装第一次升级时，先按原发布清单核验，再采用新版工作台附带的初始独立包。新会话中的调用提示应与页面已安装版本一致；旧会话可能保留旧指令，需要重新加载或新开会话。
+
+Skill 下载或普通替换失败保留/恢复此前可用版本。若进程在切换中退出，页面显示「恢复上次更新」，原进程退出后可核验回退；CLI 用 `--recover <操作标识> --agent codex`，明确接续新版则追加 `--finish-update`。恢复材料位于插件恢复目录 `tt-workbench-recovery/skill-<操作标识>/`。外部变化或活跃进程会阻止覆盖，保留具体材料供核对；不要求用户删除锁或恢复目录。发布和包管理契约见 [Skill 版本与发布](skill-releases.md)。

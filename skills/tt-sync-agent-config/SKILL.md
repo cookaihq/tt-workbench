@@ -1,9 +1,18 @@
 ---
 name: tt-sync-agent-config
 description: 按目标知识库的配置清单核对当前 Agent，检查本机 FNS 普通配置，差异经用户允许后应用并复查。首次或更新清单后直接发送名称即可。
+metadata:
+  version: "1.0.0"
+  workbench-min: "0.26.0"
+  node-min: "22.0.0"
+  platforms: "win32,darwin,linux"
+  hosts: "codex,claude"
+  release-notes: "首次独立版本：调用时报告实际版本，工具和文档随 Skill 固定分发。"
 ---
 
-从本 Skill 的真实路径（解析发现链接后）向上两级得到 `<软件根>`。先读取并执行 `<软件根>/docs/agents/package-layout.md` 的“目标库规则读取”：确认用户指定的库，沿该库实际 Agent 入口读取本次主题规则和配置场景。下文软件流程均显式标明 `<软件根>`；目标库的清单、规则及场景按其入口解析。命令显式传 `--vault "<库绝对路径>"`。
+开始执行时，从本次加载的 SKILL.md 元数据读取 `name` 和 `metadata.version`，向用户提示“正在使用 <name> v<version>”。版本只取本文件；已有会话保留的旧内容不能冒称已加载磁盘新版。
+
+解析发现链接得到本 Skill 真实目录。存在同目录 `skill-package.json` 时，`<软件根>` 为同目录的 `runtime/`；源码开发时才向上两级取软件根。先读取并执行 `<软件根>/docs/agents/package-layout.md` 的“目标库规则读取”：确认用户指定的库，沿该库实际 Agent 入口读取本次主题规则和配置场景。下文软件流程均显式标明 `<软件根>`；目标库的清单、规则及场景按其入口解析。命令显式传 `--vault "<库绝对路径>"`。
 
 FNS 完整运行配置保留在本机插件目录的普通 `data.json`，不自动外移或建链。完整配置（含各设备自己的 Token）只在明确发布时生成 Git 快照；应用仍只替换四组共享规则，不借用另一设备身份。旧链接按 `<软件根>/docs/agents/fns-device-config.md` 核对工具能力，同时遵守目标库场景，在获准后迁回。
 

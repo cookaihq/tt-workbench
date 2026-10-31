@@ -50,12 +50,16 @@ node scripts/workbench/install.mjs --vault "D:\Knowledge\WorkbenchTest" --bundle
 
 开始前读取并遵守[发布工作区与收尾](../agents/git-access-commit-and-release.md#发布工作区与收尾)，发布验收后按该规则完成临时资源清理。
 
-1. 更新 `package.json` 与 `apps/workbench/manifest.json` 的同一版本。
+同时必须读取并执行[发布时同步仓库设计文档](../agents/release-knowledge-docs.md)：发布前更新 tannt「仓库设计」项目中受影响的文档，发布后补齐实际版本及验证记录。
+
+1. 按 [发布范围与 Tag 选择](../agents/git-access-commit-and-release.md#发布范围与-tag-选择)固定本次 Tag 和交付范围，再更新 `package.json` 与 `apps/workbench/manifest.json` 的同一版本。
 2. 执行测试与构建，核对 ZIP、展开目录和更新包包含相同的文件及清单，并完成受影响功能的隔离验收。
-3. 在明确发布授权范围内创建正式 GitHub Release，同时上传 **`tt-workbench.zip`、`release.json`、`tt-workbench.bundle.json.gz`** 三个附件。不要把 GitHub 的 `Source code` 附件当作插件安装包。
+3. 在明确发布授权范围内创建正式 GitHub Release，同时上传 **`tt-workbench.zip`、`release.json`、`tt-workbench.bundle.json.gz`** 三个附件。联合发布还在同一 Release 交付完整 Skill 清单及选中的独立包，执行下方 Skill 发布入口。不要把 GitHub 的 `Source code` 附件当作插件安装包。
 4. 回读 Release 的附件，核验版本及下载内容。首次公开发布时同步更新 README 中的发布状态提示；实际下载成功后才能将入口记为可用。
 
 构建不自动提交、推送或创建 Release。首次安装使用 ZIP，内置更新继续读取 JSON 清单和 gzip 更新包，详细行为见[工作台版本与更新](updates.md)。
+
+Skill 行为版本与工作台版本独立；单独或联合构建、完整清单、手动 Actions 发布及失败续做见[Skill 版本与发布](skill-releases.md)。默认 `npm run build` 生成开发候选。仅工作台更新时，正式构建传 `--skills-catalog <正式清单> --skills-assets <完整附件目录>`，逐项使用已发布的固定包；联合发布从本次清单和选中包一次组装全部附件，输出至 `dist/skills/<Tag>/`。两者都防止夹带未选开发内容，构建不会因工作台升版自动改变 Skill 版本。
 
 ## 源码与实例
 
