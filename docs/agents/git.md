@@ -27,7 +27,7 @@ git config --show-origin --get user.email
 
 ## 凭证来源
 
-用户明确选择本仓独立 Token，方式为 `github-token`。唯一来源是主检出的 `.credentials/repositories/cookaihq--tt%2Dworkbench.github-token`，目标仅为 `https://github.com/cookaihq/tt-workbench.git`。后续调用直接读取该文件当前值，不使用本机 `gh` 登录、环境 Token 或全局 helper；来源缺失或失效时修复此文件，不自动切换。
+用户明确选择本仓独立 Token，方式为 `github-token`。唯一来源是主检出的 `.credentials/repositories/cookaihq--tt-workbench.github-token`，目标仅为 `https://github.com/cookaihq/tt-workbench.git`。2026-10-31 用户统一指定此文件名；各设备以各自的主检出根目录为基准，保持这一相对路径。调用工具时显式传入该文件，不以工具默认生成的名称替代。后续调用直接读取该文件当前值，不使用本机 `gh` 登录、环境 Token 或全局 helper；来源缺失或失效时修复此文件，不自动切换。
 
 文件内容只能是单行 Token 原文，不加引号、变量名或 URL，允许一个末尾换行。2026-10-29 用户填写并明确回复后已完成验证；通过本机 `.git/info/exclude` 忽略该精确路径，文件及两个父目录的 Windows ACL 仅允许当前用户访问，已禁用继承。每次使用前核对未跟踪、被 Git 忽略且为无链接的普通文件；其他设备分别核验 Windows 私有 ACL 或 Unix 目录 700、文件 600。新设备首次准备文件后也须等待用户明确已填写才读取。Token 不进入对话、参数、remote、规则或日志。
 
@@ -81,7 +81,7 @@ Git HTTPS 连接 GitHub 失败或超时时，若本机 `127.0.0.1:7897` 的 Clas
 
 Release 附件为 `dist/tt-workbench.zip`、`dist/release.json` 和 `dist/tt-workbench.bundle.json.gz`，需要单独明确发布授权。当前没有专用的 GitHub 推送、PR 或 Release 上传脚本、hook 或 CI；构建成功不会自动提交、推送或发布。只修改 Git 说明时检查文本、引用和实际 Git 配置，无需重跑应用测试。
 
-已安装 git-setup 时可调用其当前实体的 `scripts/git-setup/cli.mjs`：`check` 检查现状，`read --remote origin` 验证读取，`setup` 计划接入，`audit --ref <完整引用>` 审查历史，`publish --remote origin --ref <完整引用>` 预览发布。鉴权显式传入 `--auth-method github-token --credential-file <主检出绝对路径>/.credentials/repositories/cookaihq--tt%2Dworkbench.github-token`；设置或发布的执行使用同参数、`--apply` 和本次 `--expected-fingerprint`。脚本计划不扩大授权；未安装 Skill 时执行本文上述标准 Git 与临时鉴权过程。
+已安装 git-setup 时可调用其当前实体的 `scripts/git-setup/cli.mjs`：`check` 检查现状，`read --remote origin` 验证读取，`setup` 计划接入，`audit --ref <完整引用>` 审查历史，`publish --remote origin --ref <完整引用>` 预览发布。鉴权显式传入 `--auth-method github-token --credential-file <主检出绝对路径>/.credentials/repositories/cookaihq--tt-workbench.github-token`；设置或发布的执行使用同参数、`--apply` 和本次 `--expected-fingerprint`。脚本计划不扩大授权；未安装 Skill 时执行本文上述标准 Git 与临时鉴权过程。
 
 ## Agent 入口与验证边界
 
