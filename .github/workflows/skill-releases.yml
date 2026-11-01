@@ -1,0 +1,59 @@
+name: Publish Skills or combined workbench release
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: 'Release tag: v<workbench version> when both change; skills-YYYYMMDD.N for Skills only'
+        required: true
+        type: string
+      skills:
+        description: 'Explicit comma-separated Skill names; first batch requires all active Skills'
+        required: true
+        type: string
+      docs_reviewed:
+        description: 'Release knowledge documents and the selected commit were reviewed under project release rules'
+        required: true
+        type: boolean
+permissions:
+  contents: write
+concurrency:
+  group: skill-releases
+  cancel-in-progress: false
+jobs:
+  release:
+    if: inputs.docs_reviewed
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - name: Restore shared GitHub request cooldown
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/skills/request-state.json
+          key: skill-publish-cooldown-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: skill-publish-cooldown-v1-
+      - name: Build all selected artifacts, verify draft and publish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SKILL_BATCH: ${{ inputs.batch }}
+          SKILL_NAMES: ${{ inputs.skills }}
+        run: node scripts/agent-skills/publish-release.mjs --batch "$SKILL_BATCH" --skills "$SKILL_NAMES"
+      - name: Preserve cooldown before another run
+        uses: actions/cache/save@v4
+        if: always() && hashFiles('dist/skills/request-state.json') != ''
+        with:
+          path: dist/skills/request-state.json
+          key: skill-publish-cooldown-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skill-release-evidence
+          path: dist/skills/
+          if-no-files-found: ignore

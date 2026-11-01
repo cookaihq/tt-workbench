@@ -2,13 +2,15 @@
 
 在目标知识库使用 `tt-sync-agent-config`，执行者读取该库 `config/agent-config-checklist.md`，核对当前 Agent 的实际设置；尚无清单时按[清单约定](agent-config-checklist.md)确定目标，不采用其他实例的选值。有差异时呈现具体方案，在用户授权范围内应用并复查。FNS 按[专门流程](fns-device-config.md)检查本机普通文件。
 
+开始前执行[目标库规则读取](package-layout.md#目标库规则读取)，读取该库实际入口指明的配置及业务场景。本文及相对链接是软件操作说明；目标库实际目标、同步选择和业务要求以该库正文为准，能力冲突先说明。FNS 及其他集成只检查已纳入清单的项目。
+
 ## 共享目标与本机结果
 
 检查清单是目标配置的统一阅读入口，供用户和 Agent 阅读；配置说明、活动 Skill 清单和网盘目标值继续引用各自唯一正式源，不在清单中重复维护账号及目录。配置检查结果属于本次环境，在回复中报告，不把共享目标表改成某台电脑的完成状态。执行者正常读取并遵守适用规则；Agent 规则检查、分析、迁移、入口修复和加载验证不属于本流程，也不在检查后自动转交或调用规则整理 Skill。
 
 用户在一台电脑修改目标清单，经 FNS 把清单和受影响的共享源传到另一台电脑后，在后者重新运行本 Skill。执行者按本机实际路径和当前宿主应用同一目标，不复制旧机用户目录、会话、运行锁或其他登录凭证。FNS 发布允许包含来源完整配置快照，但每台运行配置仍留在自己的插件目录，只应用四组共享规则，不使用另一台的 Token。文件已在本机不证明远端最新版本已到达；同步不完整时列明缺项。
 
-共享规则正文在一处获准修改后，已正确接入的设备会在新会话或后续按需读取时使用收到的内容，无需每台再次批准正文；本 Skill 不提供按设备锁定规则版本的机制。安装、链接、登录、启用及同步设置仍先检查、列方案、按本机授权应用。非敏感网盘目标唯一维护于`config/cloud-storage-targets.jsonc`，通过 FNS 普通文件同步；涉及其同步配置或新设备接入时，先读取并遵守[网盘目标配置同步维护](fns-cloud-targets-sync.md)。
+目标库自己的规则正文获准修改后，按该库既有同步与接入约定供设备读取；工作台规则随软件版本交付，两者不互相覆盖。个人全局正文按所选规则源自己的约定维护。本 Skill 不提供按设备锁定规则版本的机制。安装、链接、登录、启用及同步设置仍先检查、列方案、按本机授权应用。非敏感网盘目标在目标库的 `config/cloud-storage-targets.jsonc` 维护；采用 FNS 同步时，先读取目标库相应场景，再按[网盘目标配置同步维护](fns-cloud-targets-sync.md)核对工具能力。
 
 现阶段宿主为 Codex、Claude Code，环境为 macOS、Windows 原生；Hermes 另行接入。判断“当前 Agent”依据实际执行会话，不能用 PATH 中同时存在两个可执行文件推断要一起配置。WSL 有独立用户目录和运行环境，不能替代 Windows 原生的检查结果。
 
@@ -43,13 +45,13 @@ Codex 和 Claude Code 读取目标库各自的项目入口。当前技能清单�
 
 | 对象 | 只读检查 | 获准后的应用 |
 | --- | --- | --- |
-| 项目 Skill | `node "<软件根>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent <当前宿主> --check` | 同命令去掉 `--check`；只建立当前宿主的活动入口，清理同一宿主已知来源的退役链接 |
-| 工作台 | 根据安装器列出的文件只读比较源码、安装副本与启用设置 | `node "<软件根>/scripts/workbench/install.mjs" --vault "<库绝对路径>"`，随后启用或重载；该脚本没有检查模式，传 `--check`／`--help` 也会写入 |
+| 项目 Skill | `node "<软件根>/scripts/agent-skills/install.mjs" --vault "<库绝对路径>" --agent <当前宿主> --check` | 同命令去掉 `--check`；普通安装只处理未安装项，修复／移除按[Skill 安装说明](../workbench/agent-skill-setup.md)单独明确执行 |
+| 工作台 | `node "<软件根>/scripts/workbench/install.mjs" --vault "<库绝对路径>" --check` 只比较文件；`--help` 也只读 | 同命令去掉 `--check`，随后启用或重载；安装只更新插件目录及恢复材料，不导入目标库规则 |
 | FNS 配置文件位置 | 必须先读[FNS 按设备配置](fns-device-config.md)，运行 `node "<软件根>/scripts/fns/device-config.mjs" --vault "<库绝对路径>" --check` | 获准迁回旧链接后，实际停用 FNS，运行同命令的 `--apply`，恢复原启用状态；普通文件不搬动，缺文件不借用其他设备配置 |
-| FNS 同步范围 | 按[隐藏项机制](fns-hidden-item-check.md)核对范围，需要时运行 `node "<软件根>/scripts/fns-hidden-audit.mjs" --vault "<库绝对路径>" check --json` | 按获准的具体路径调整本机设置，确认是本机插件目录的普通文件后写入；旧链接先按获准范围迁回，保留无关配置，检查插件重载后的实际值 |
+| FNS 同步范围 | 按[隐藏项机制](fns-hidden-item-check.md)核对范围，需要时运行 `node "<软件根>/scripts/fns-hidden-audit.mjs" check --vault "<库绝对路径>" --json` | 按获准的具体路径调整本机设置，确认是本机插件目录的普通文件后写入；旧链接先按获准范围迁回，保留无关配置，检查插件重载后的实际值 |
 | 网盘共享目标与本机授权 | `node "<软件根>/scripts/cloud-files/config.mjs" --vault "<库绝对路径>" --check` 只读检查`config/cloud-storage-targets.jsonc`；身份和授权另按[网盘规则](../rules/cloud-files.md)检查 | 按已确认值维护共享目标 JSONC，按[网盘目标配置同步维护](fns-cloud-targets-sync.md)配置本机 FNS；凭据在库外单独准备，未提供真实账号时不写示例值 |
 
-项目 Skill 安装器保留不加 `--agent` 时处理两个宿主的旧命令，但本 Skill 使用显式当前宿主。另一个宿主的冲突不应阻塞本次。原 `tannt-setup-device` 为退役名称，清单负责清理其已知来源链接。
+项目 Skill 安装器保留不加 `--agent` 时处理两个宿主的旧命令，但本 Skill 使用显式当前宿主。另一个宿主的冲突不应阻塞本次。原 `tannt-setup-device` 为退役名称；清单记录历史，普通安装不会清理清单外入口。
 
 项目 Skill 入口在 Windows 使用本机目录符号链接；FNS 运行配置使用普通文件，无建链权限要求。实际权限错误须报告对应失败和已完成步骤，给出适用于该机器的开发者模式或管理员权限操作；获得权限后重新执行原范围。不能用 WSL、硬链接或复制文件改变既定目标。Mac 专用的 `ps`、`pgrep`、应用标识和工具路径不能证明 Windows 的运行状态。
 

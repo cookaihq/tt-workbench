@@ -2,7 +2,9 @@
 
 本文中的 `<运行目录>` 按[本机运行记录](../rules/writing-and-changes.md#本机运行记录)解析，默认 `.system/.workbench-runtime/`；自定义位置从所属实例的 `.system/workbench/runtime.jsonc` 读取。
 
-从已安装包或源码仓库调用 `node "<软件根>/scripts/vault/write.mjs" --vault "<知识库绝对路径>"`，通过 stdin 传一个 JSON 对象。自定义配置目录追加 `--config-dir "<实际目录>"`；软件位置与目标库见[路径约定](package-layout.md)。脚本直接读写文件，无需 Obsidian。其他工具可按[共同规则](../rules/README.md)执行同一任务。
+从已安装包或源码仓库调用 `node "<软件根>/scripts/vault/write.mjs" --vault "<知识库绝对路径>"`，通过 stdin 传一个 JSON 对象。自定义配置目录追加 `--config-dir "<实际目录>"`；软件位置与目标库见[路径约定](package-layout.md)。脚本直接读写文件，无需 Obsidian。
+
+调用前必须按[目标库规则读取](package-layout.md#目标库规则读取)取得该库本次适用的正文。本文及下方软件规则链接说明当前五目录、字段和操作契约；CLI 不解释目标库 Markdown，也不自动适配不同模型。目标要求与工具冲突时先说明具体限制，选择符合目标规则的其他工具或协调实现，不能以软件默认覆盖。其他文件操作同样遵守该库规则及授权。
 
 写入前判断用户授权和隐私范围。每次新操作用 `crypto.randomUUID()` 生成 `request_id`，设置 `privacy: "ordinary"`；相同输入重试保留 ID，修改输入后更换。JSON 不通过 shell 参数拼接正文。CLI 设置 UTF-8 流解码，中文跨字节块也不拆坏。
 

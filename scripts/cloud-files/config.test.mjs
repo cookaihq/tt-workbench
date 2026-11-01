@@ -19,17 +19,27 @@ async function fixture(t) {
 test('default and explicit accounts retain their own parents; unknown choices never fall back', () => {
   const parsed = parseTargets(JSON.stringify(targets));
   assert.deepEqual(parsed, targets);
-  assert.equal(selectUploadTarget(parsed).remote_parent, targets.remote_parents['工作']);
-  assert.equal(selectUploadTarget(parsed, 'personal').remote_root, '/私人附件/tannt');
+  assert.equal(selectUploadTarget(parsed, undefined, '课程库').remote_parent, targets.remote_parents['工作']);
+  assert.equal(selectUploadTarget(parsed, 'personal', '课程库').remote_root, '/私人附件/课程库');
+  assert.equal(selectUploadTarget(parsed, 'personal', 'tannt').remote_root, '/私人附件/tannt');
   assert.throws(() => selectUploadTarget(parsed, 'missing'), { code: 'ACCOUNT_UNCONFIGURED' });
   assert.throws(() => selectUploadTarget(parsed, ''), { code: 'ACCOUNT_UNCONFIGURED' });
 });
 
 test('an explicit account works without a default; empty targets stay unconfigured', () => {
   const partial = parseTargets(JSON.stringify({ ...targets, default_account: null }));
-  assert.equal(selectUploadTarget(partial, 'personal').account_ref, 'personal');
+  assert.equal(selectUploadTarget(partial, 'personal', '资料').account_ref, 'personal');
   assert.throws(() => selectUploadTarget(partial), { code: 'ACCOUNT_UNCONFIGURED' });
   assert.deepEqual(parseTargets('{"default_account":null,"remote_parents":{}}'), { default_account: null, remote_parents: {} });
+});
+
+test('remote directory requires an explicit instance choice and cannot escape its account parent', () => {
+  for (const name of [undefined, null, '', ' ', ' name', 'name ', '.', '..', '../other', '/other', 'a/b', 'a\\b', 'a\nb', 'a\u007fb']) {
+    assert.throws(() => selectUploadTarget(targets, 'personal', name), { code: 'VAULT_DIRECTORY_REQUIRED' });
+  }
+  const before = JSON.stringify(targets);
+  assert.equal(selectUploadTarget(targets, 'personal', '研究 库').remote_root, '/私人附件/研究 库');
+  assert.equal(JSON.stringify(targets), before);
 });
 
 test('JSONC preserves Unicode, quotes and shell-like text literally, including BOM and CRLF', () => {

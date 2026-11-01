@@ -1,0 +1,155 @@
+{
+  "checkedAt": "2026-10-29T10:27:24.025Z",
+  "version": "0.25.1",
+  "releaseSha256": "19f50add60bb72c3b79a279aa62093adcf421abd379ae0671cdd8caecc51ee95",
+  "protectedFiles": {
+    "AGENTS.md": "cb37fda4da37c760d603447fe508fdf4e976016079ad13a67e7bf1634176844b",
+    "AGENTS.override.md": null,
+    "CLAUDE.md": null,
+    "README.md": "63f4ee096c55859994912265a7938bb86a1e25693e4a39548cb627f3b69a7476",
+    "GLOSSARY.md": "55a9938882c127386a078e61388596fadb519b0f910b02e311837acf015759c3",
+    "config/agent-config-checklist.md": "6e436e7014fb395e53a862a85e3b9385b4402a7029b5937e1a1b7315c2f0117c",
+    ".obsidian/plugins/tt-workbench/data.json": "c9e009a0b914cce9f170d8495abea8c36ce272e2cb1e65871ba269c1dfa90f21",
+    ".obsidian/plugins/fast-note-sync/data.json": "dbc1fa1df6d4d3716eae6f7ef6dd5974f247660bf44e4ac335367e8a10ef8398",
+    "docs/rules/attachments.md": "255d7413c363827879e69e28f1328455d2bc6f57e38fedc5508e4b6a0f850bd0",
+    "docs/rules/cloud-files.md": "7d1462aaf5c8855059ea5e8b842312707d627102dc04769ebaf5fb17e8991734",
+    "docs/rules/content-and-sources.md": "51012c4a330d9286201553236eef32f5589a9502a735296cbfea49bda6c6a733",
+    "docs/rules/fns-config-sync.md": "6afbbffe605aaf6e8910f0fb34a292fb3dba8f8b4138b9fc5186508c86f7861c",
+    "docs/rules/inbox.md": "2d1791f33c5d4bb19fb6c5d384400f12345768edb6b9e18c5e0ac67e730324f2",
+    "docs/rules/issues.md": "d40841eb3f1a1a7ab209d1f4fb2fbc42156a79ff251b46b08cd500f24ddaf60d",
+    "docs/rules/lark-wiki-sync.md": "23174edc08304bfd5ef7ce418da61a1f4f1a222f8ad535a240b4197cf3f1a43e",
+    "docs/rules/projects-and-tasks.md": "ababfa7d83f64c53ec9415ecfefaf95125a54df5645ff7f1685131c80f848fdd",
+    "docs/rules/README.md": "63b605301a2120cb4829878794f1bb837e9a8d22715107c43b7b1d747834e68b",
+    "docs/rules/scope-and-directories.md": "a09e99739c14905677033bee502d4b2e74dc86645d95e0d2c1e7dce67b4725c7",
+    "docs/rules/writing-and-changes.md": "d2c81e3a4751be0cdcef815815d11ae7a514fa2d7402af182cd16c2097cd6c8e",
+    "docs/agents/agent-config-checklist.md": "7edbc1232f3e82b73cdf9a6439fcf7a7c33c806c32e16f3816b62895467ba52b",
+    "docs/agents/agent-config-sync.md": "74a6b4e068096babd48545be535cb59777eb92f327ce6a8fd1d88754c212e10d",
+    "docs/agents/cnb-git-credentials.md": "c3ed58aafc7788bbb3ba62f09afc8d92db4091672d312dcdbb1a80da21df3451",
+    "docs/agents/domain.md": "28b2659efd48361d3f0b9ea58439c0b737cdc382fe4473ec4e2cb99825db189d",
+    "docs/agents/fns-cloud-targets-sync.md": "c49ff37b26b893a38356b4bd61dcfd5d876dad6129c11a1804d15fcb34db1d33",
+    "docs/agents/fns-device-config.md": "ab8c080024ca1efbc5a4cb5e861b189a707257525650622c370eefd1ce8b5781",
+    "docs/agents/fns-env-sync.md": "9b940cb84a1054143b2fb81628cbba4894be71a4190af2061418d4c947627d10",
+    "docs/agents/fns-hidden-item-check.md": "a1221550bef27fbfd8b27cc0cdd4894c5ff9d2ce292d0cab291af914945effc3",
+    "docs/agents/issue-tracker.md": "fbc675a99906d4a9d539c10bc10b63b3896d3ff349486261b231607f0c85a38f",
+    "docs/agents/triage-labels.md": "18d7398e6a497dc1935da4ce387173e6027a2a15dc29eade83a8bae4104102ca",
+    "docs/agents/vault-file-operations.md": "5410ebde5692c24a78fd654687a16109239b187f8eab9e49070e8f4fd2385058",
+    "docs/agents/workbench-change-coordination.md": "3d7e1dabab72e7db0fe4aac65bcd2c72bba067ae1e10e4bc1b3e7b40974af518",
+    "docs/agents/workbench-skill-maintenance.md": "95fd4d3cfc6ab01b09b06027267e81e64157c31e57bbd08dd0ef70809cc2417b",
+    "docs/agents/workbench-tools.md": "e6a8fbbc0f992ba2b8bec6a874856661fec363a9612f214a673be2c2dc222ff8",
+    "docs/adr/0001-shared-rules-and-scenario-skills.md": "e08a24244457ce19280c711f6ecf74843a03bc25ddd86febdd6947feeab7fae0",
+    "docs/adr/0002-global-agent-instructions.md": "38e62b44c2d48710955967d4ff9c6064f83de175f681d274fb0fefd216e6ee41",
+    "docs/adr/0003-cloud-file-path-mapping.md": "1794a186d99eaed03cd6e9c860908bae918f59ccaa16379ec5d9aa38abc4e652",
+    "docs/adr/0004-project-centered-information-architecture.md": "08d3542c34be137538a9b93704ba6eb4b3639dc9977f4440e08b5658a25062b4",
+    "docs/adr/0005-independent-workbench-repository.md": "95eae4df7ddda25c8cb05bfd1274b690d695738192bad1b5ce0921561fc5b06e",
+    "docs/adr/0006-project-owned-rules.md": "631d1a6abcc25fe4264ca1c1c7aeb90b2f7290ca0a64b09f2dbf01be9e663598"
+  },
+  "links": [
+    {
+      "entry": ".agents/skills/tt-capture",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-capture",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-capture",
+      "sha256": "d0cd96a4903adfc314214bb3d8b31f97998d0eb2d117e388aa9b3b21401e1778"
+    },
+    {
+      "entry": ".agents/skills/tt-update-note",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-update-note",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-update-note",
+      "sha256": "fc426ccd2aea0287f1de29b5efcaf646f726857216a28554b03e6d044a94d27d"
+    },
+    {
+      "entry": ".agents/skills/tt-cloud-files",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-cloud-files",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-cloud-files",
+      "sha256": "48d3c50d1d3a0b35f513528edc92796824c1f763f02ca84d55104459297e1ab1"
+    },
+    {
+      "entry": ".agents/skills/tt-sync-agent-config",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-sync-agent-config",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-sync-agent-config",
+      "sha256": "d5f4b1288781b2e9e8b9706ee67fc7310b91243d7891f4f3c24f5253c6072089"
+    },
+    {
+      "entry": ".agents/skills/tt-organize-agent-rules",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-organize-agent-rules",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-organize-agent-rules",
+      "sha256": "bc6fcce222252958eff5a9124982628ea499022bba8d5fb7009ffb68371988d3"
+    },
+    {
+      "entry": ".claude/skills/tt-capture",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-capture",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-capture",
+      "sha256": "d0cd96a4903adfc314214bb3d8b31f97998d0eb2d117e388aa9b3b21401e1778"
+    },
+    {
+      "entry": ".claude/skills/tt-update-note",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-update-note",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-update-note",
+      "sha256": "fc426ccd2aea0287f1de29b5efcaf646f726857216a28554b03e6d044a94d27d"
+    },
+    {
+      "entry": ".claude/skills/tt-cloud-files",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-cloud-files",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-cloud-files",
+      "sha256": "48d3c50d1d3a0b35f513528edc92796824c1f763f02ca84d55104459297e1ab1"
+    },
+    {
+      "entry": ".claude/skills/tt-sync-agent-config",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-sync-agent-config",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-sync-agent-config",
+      "sha256": "d5f4b1288781b2e9e8b9706ee67fc7310b91243d7891f4f3c24f5253c6072089"
+    },
+    {
+      "entry": ".claude/skills/tt-organize-agent-rules",
+      "link": "..\\..\\.obsidian\\plugins\\tt-workbench\\skills\\tt-organize-agent-rules",
+      "target": ".obsidian/plugins/tt-workbench/skills/tt-organize-agent-rules",
+      "sha256": "bc6fcce222252958eff5a9124982628ea499022bba8d5fb7009ffb68371988d3"
+    }
+  ],
+  "managedFilesVerified": 339,
+  "personalRulesPackaged": false,
+  "targetRuleReferences": [
+    "docs/rules/README.md",
+    "docs/rules/scope-and-directories.md",
+    "docs/agents/cnb-git-credentials.md",
+    "docs/rules/content-and-sources.md",
+    "docs/rules/inbox.md",
+    "docs/rules/projects-and-tasks.md",
+    "docs/rules/scope-and-directories.md",
+    "docs/rules/attachments.md",
+    "docs/rules/cloud-files.md",
+    "docs/rules/writing-and-changes.md",
+    "docs/agents/vault-file-operations.md",
+    "docs/rules/lark-wiki-sync.md",
+    "docs/agents/workbench-tools.md",
+    "docs/agents/agent-config-sync.md",
+    "docs/agents/fns-device-config.md",
+    "docs/rules/fns-config-sync.md",
+    "docs/agents/fns-hidden-item-check.md",
+    "docs/agents/workbench-change-coordination.md",
+    "docs/agents/workbench-skill-maintenance.md",
+    "docs/agents/domain.md",
+    "docs/rules/writing-and-changes.md"
+  ],
+  "projectEntrypoints": {
+    "codex": "AGENTS.md",
+    "claude": null,
+    "hostLoadingTested": false
+  },
+  "fnsAuditCommandOrder": {
+    "files": [
+      "docs/agents/agent-config-sync.md",
+      "docs/agents/fns-hidden-item-check.md"
+    ],
+    "examples": 6,
+    "helpExitCode": 0,
+    "help": "用法：node scripts/fns-hidden-audit.mjs <snapshot|check> [--vault PATH] [--config-dir PATH] [--baseline PATH] [--json]\nsnapshot：在系统临时目录写入基线，仅输出基线文件路径。\ncheck：只读扫描；--baseline 用于识别本次新增隐藏项，--json 输出结构化结果。\n退出码：0 检查完成（可包含待确认项）；2 检查不完整或执行失败。"
+  },
+  "installedCliInfo": {
+    "ok": true,
+    "writes": false
+  },
+  "tanntMapping": "/fixture/tannt",
+  "otherMapping": "/fixture/研究库",
+  "bundleSha256": "dc901a5e2fe1d467940b5f320bf94f52044d45f91c22faa9c2bcc521569f60cc",
+  "zipSha256": "a45dd9478f8c6e27679b73e287a37c1fdba6b76e45e8df841b06759e33830ee0"
+}

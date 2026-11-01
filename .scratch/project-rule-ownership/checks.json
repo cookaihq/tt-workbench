@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-29",
+  "targeted": {
+    "passed": 13,
+    "failed": 0
+  },
+  "firstFull": {
+    "passed": 261,
+    "failed": 2,
+    "total": 270,
+    "skipped": 7
+  },
+  "finalFull": {
+    "passed": 277,
+    "externalFnsVersion": "2.4.0",
+    "failed": 0,
+    "total": 277,
+    "skipped": 0
+  },
+  "updatesRetest": {
+    "passed": 11,
+    "failed": 0
+  },
+  "concurrentAddedTests": {
+    "passed": 9,
+    "file": "lib/fns/tests/local-protection.test.cjs",
+    "failed": 0
+  },
+  "build": {
+    "version": "0.25.1",
+    "files": 339,
+    "frozenSourceAt": "2026-10-29T10:27:23.222Z",
+    "releaseSha256": "19f50add60bb72c3b79a279aa62093adcf421abd379ae0671cdd8caecc51ee95",
+    "bundleSha256": "dc901a5e2fe1d467940b5f320bf94f52044d45f91c22faa9c2bcc521569f60cc",
+    "zipSha256": "a45dd9478f8c6e27679b73e287a37c1fdba6b76e45e8df841b06759e33830ee0"
+  },
+  "logs": {
+    "tmp/project-rule-ownership/npm-test.log": "8aeef08c12cd5f9115e5c451b006fd7cefed89875afbf7a9bb3c32d38cae3ae3",
+    "tmp/project-rule-ownership/npm-test-final.log": "d473e804f8e39f6e4f8f94b85eea5586fde8e0fd230fe2ba39c89ea8149e9519",
+    "tmp/project-rule-ownership/fns-post-test.log": "2f2351c67f6061897e7dbeb2f2c1f72fa909b88e717cabaca1486e5b2dfff311",
+    "tmp/project-rule-ownership/fns-final-delta-test.log": "82ac6ee9b053ef4fea2665750db498adb27b996db948e6eb97452c0ef1f68c25",
+    "tmp/project-rule-ownership/fns-audit-help.log": "0dfdb1afdfceafe62f334dfcf3085d9d25fe230f86e055ececb09dc8cea582ce",
+    "tmp/project-rule-ownership/build.log": "d0f6f0b4218198c3a05b47fa59bdae769449da7d4848e74859fa5ae89ff23f47",
+    "tmp/project-rule-ownership/install.log": "14511de9485e44620e678108dba6554adc55c46344c54ae2997eb9301b41d0fc",
+    "tmp/project-rule-ownership/build-final.log": "d0f6f0b4218198c3a05b47fa59bdae769449da7d4848e74859fa5ae89ff23f47",
+    "tmp/project-rule-ownership/install-final.log": "00a73136fa663e3345a48c34c45ac09d1c8690849e2667db1998ba321f9d9c93",
+    "tmp/project-rule-ownership/verify-install-final.log": "68218e4d6cebeb55ece37340fcba2eeebebb7cc3d2bd0d769c2848659a434495",
+    "tmp/project-rule-ownership/install-check-final.log": "1c8d4c56f993a9178a769a3889d291a93562a82aa847305b327815338a1e7073"
+  },
+  "concurrentFinalDeltaTests": {
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0,
+    "files": [
+      "lib/fns/tests/local-protection.test.cjs",
+      "apps/workbench/tests/fns-local-ui.test.cjs",
+      "apps/workbench/tests/updates.test.cjs"
+    ]
+  },
+  "documentCorrection": {
+    "files": [
+      "docs/agents/agent-config-sync.md",
+      "docs/agents/fns-hidden-item-check.md"
+    ],
+    "correctedExamples": 3,
+    "executableExamplesChecked": 6,
+    "verification": "main reads the subcommand first; source and installed --help exit 0; installed examples checked.",
+    "fullSuiteRepeatedForDocumentation": false
+  },
+  "install": {
+    "ok": true,
+    "checkOk": true,
+    "changedOnCheck": false,
+    "recovery": ".obsidian/plugins/tt-workbench-recovery/61450a7a-24e9-4cbf-b390-9ce09a48c31c",
+    "managedFilesVerified": 339,
+    "protectedChecksUnchanged": 39,
+    "discoveryLinksUnchanged": 10,
+    "personalRulesPackaged": false,
+    "hostLoadingTested": false
+  }
+}

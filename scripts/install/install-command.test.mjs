@@ -102,6 +102,22 @@ test('native command installer: complete offline install, custom config, exact b
   assert.deepEqual(await packages.readTree(target), new Map([...f.files, ['release.json', releaseBytes]]));
 });
 
+test('native command installer: current workbench bundle preserves independent Skill packages', { skip }, async t => {
+  const f = await fixture(t);
+  const bundle = await packages.collectPackage(root);
+  assert.ok(Object.keys(bundle.release.skillPackages).length > 0);
+  await fs.writeFile(path.join(f.source, 'release.json'), JSON.stringify(bundle.release, null, 2) + '\n');
+  await fs.writeFile(path.join(f.source, 'tt-workbench.bundle.json.gz'), packages.encodeBundle(bundle));
+  const result = run(f.vault, f.source);
+  assert.equal(result.status, 0, result.output);
+  const installed = await packages.readTree(path.join(f.plugins, 'tt-workbench'));
+  const release = packages.parseRelease(installed.get('release.json'));
+  installed.delete('release.json');
+  packages.validateFiles(release, installed);
+  assert.deepEqual(release.skillPackages, bundle.release.skillPackages);
+  assert.deepEqual(installed, bundle.files);
+});
+
 test('native command installer: drag or paste a folder after the prompt, without a vault argument', { skip }, async t => {
   const quoteDouble = value => '"' + value.replace(windows ? /([`"$])/g : /([\\"$`])/g, windows ? '`$1' : '\\$1') + '"';
   const quoteSingle = value => "'" + value.replace(/'/g, windows ? "''" : "'\\''") + "'";

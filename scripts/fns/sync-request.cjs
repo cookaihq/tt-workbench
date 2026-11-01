@@ -3,10 +3,11 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { FnsSyncService } = require('../../lib/fns/sync.cjs');
+const { inspectWorkbenchExclusions, applyWorkbenchExclusions } = require('../../lib/fns/workbench-scope.cjs');
 
 async function main() {
   if (process.argv.includes('--help')) {
-    console.log('指定 --vault <知识库绝对路径>，从 stdin 接收 JSON：action 为 check / receive / preview / publish / apply / retry / discard / onboard / recover / save-notes。save-notes 传 check 返回的 notes.expected 和完整 notes 数组。preview 另传 kind: publish|apply；发布/应用须传预览返回的 plan。独立程序写本机配置前须手动停用 FNS，并传 fnsStopped: true；原停用状态保持，不报告已加载。');
+    console.log('指定 --vault <知识库绝对路径>，从 stdin 接收 JSON：action 为 local-check / configure-local / check / receive / preview / publish / apply / retry / discard / onboard / recover / save-notes。local-check 只检查本机文件排除，不读取发布记录；configure-local 明确补齐本机排除，不要求 Git 远端。save-notes 传 check 返回的 notes.expected 和完整 notes 数组。preview 另传 kind: publish|apply；发布/应用须传预览返回的 plan。独立程序写本机配置前须手动停用 FNS，并传 fnsStopped: true；原停用状态保持，不报告已加载。');
     return;
   }
   let raw = ''; process.stdin.setEncoding('utf8'); for await (const chunk of process.stdin) { raw += chunk; if (raw.length > 1024 * 1024) throw Error('请求过大。'); }
@@ -24,6 +25,8 @@ async function main() {
   };
   const service = new FnsSyncService({ vault, configDir, runtime });
   const actions = {
+    'local-check': async () => ({ ...await service.inspectLocal(), protection: await inspectWorkbenchExclusions(service) }),
+    'configure-local': () => applyWorkbenchExclusions(service),
     check: () => service.inspect(), receive: () => service.checkUpdates(), preview: () => service.preview(request.kind),
     publish: () => service.publish(request.plan), apply: () => service.apply(request.plan, { replaceLocal: request.replaceLocal === true }),
     retry: () => service.retryPublish(), discard: () => service.discardPending(request.publicationId), onboard: () => service.onboard(),

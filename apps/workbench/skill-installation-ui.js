@@ -3,14 +3,14 @@ const { HOSTS, LABELS } = require('./lib/agent-skills/manager.cjs');
 const OUTCOMES = { success: '成功', unchanged: '保持', skipped: '跳过', failed: '失败' };
 
 class SkillInstallationUI {
-  constructor(view) { this.view = view; this.manager = view.plugin.skills; this.agent = 'codex'; this.generation = 0; this.selected = ''; this.receipts = {}; }
+  constructor(view) { this.view = view; this.manager = view.plugin.skills; this.updates = view.plugin.skillUpdates; this.agent = 'codex'; this.generation = 0; this.selected = ''; this.receipts = {}; }
   active() { return this.view.pageScope === '@skills' && !this.view.closed; }
   build(parent) { this.root = parent.createDiv({ cls: 'tw-skills-page' }); this.root.hidden = true; }
   enter() {
     this.root.hidden = false;
     this.view.pageEyebrow.setText('SYSTEM / 系统'); this.view.pageTitle.setText('Skill 安装');
-    this.view.pageDescription.setText('让 Agent 在当前知识库中使用工作台的内置能力。');
-    if (!this.visible) { this.visible = true; void this.refresh(); }
+    this.view.pageDescription.setText('安装与更新当前知识库使用的 Skill，查看各项实际版本。');
+    if (!this.visible) { this.visible = true; void this.refresh(); if (this.updates?.status.kind === 'idle') void this.checkUpdates(); }
   }
   leave() { this.visible = false; ++this.generation; this.checking = false; this.root.hidden = true; this.closeDialog(); }
   button(parent, text, action, { primary = false, disabled = false, label = text } = {}) {
@@ -43,13 +43,19 @@ class SkillInstallationUI {
       b.setAttribute('aria-pressed', String(this.agent === agent));
     }
     const toolbar = this.root.createDiv({ cls: 'tw-skills-toolbar' });
-    toolbar.createSpan({ text: `内置 Skill · 随工作台 v${this.view.plugin.manifest.version} 更新`, cls: 'tw-muted' });
+    toolbar.createSpan({ text: 'Skill 独立版本 · 正式批次更新', cls: 'tw-muted' });
     const actions = toolbar.createDiv({ cls: 'tw-skills-actions' });
     this.button(actions, '重新检查', () => this.refresh());
+    this.button(actions, this.checkingUpdates ? '正在查询…' : '检查 Skill 更新', () => this.checkUpdates(), { disabled: this.checkingUpdates });
     const absent = s?.items.filter(i => i.status === 'absent') || [];
     this.button(actions, absent.length ? `安装未安装项（${absent.length}）` : '暂无可安装项', () => this.batch(), { primary: true, disabled: !this.writable() || !absent.length });
     if (this.checking || this.busy) this.root.createDiv({ text: this.busy ? '正在处理入口，请稍候…' : '正在检查本机入口与资源…', cls: 'tw-skills-notice', attr: { role: 'status', 'aria-live': 'polite' } });
     if (this.error) this.root.createDiv({ text: this.error, cls: 'tw-skills-notice tw-warning', attr: { role: 'alert' } });
+    const updateState = this.updates?.status;
+    if (updateState?.message) {
+      const notice = this.root.createDiv({ text: updateState.message, cls: 'tw-skills-notice', attr: { role: 'status' } });
+      if (updateState.kind === 'unconfigured') this.button(notice, '设置发布仓库', () => this.view.updatesUI.open());
+    }
     const receipt = this.receipts[this.agent];
     if (receipt) {
       const result = this.root.createEl('section', { cls: 'tw-skills-receipt', attr: { 'aria-label': '操作结果', role: 'status', 'aria-live': 'polite' } });
@@ -63,9 +69,12 @@ class SkillInstallationUI {
       notice.createEl('strong', { text: '完成本机检查后才能操作入口' });
       for (const reason of s.isolation.reasons) notice.createDiv({ text: reason });
       if (s.isolation.reasons.some(reason => reason.startsWith('FNS'))) this.button(notice, '打开 FNS 配置同步', () => this.view.navigate('@fns'));
-      if (s.busy) notice.createDiv({ text: `存在 Skill 操作锁。若先前异常退出，请核对持有进程及 ${this.view.plugin.skills.runtime}/ 中的恢复记录。` });
+      if (s.packageOperation?.recoverable) {
+        notice.createDiv({ text: '上次 Skill 更新未完成。可恢复此前可用版本，再重新检查更新；仍在执行的操作会先等待结束。' });
+        this.button(notice, '恢复上次更新', () => this.recoverUpdate(s.packageOperation.operation));
+      } else if (s.busy) notice.createDiv({ text: '另一项工作台或 Skill 操作尚未结束，请稍后重新检查。' });
     }
-    const needs = s.items.filter(i => ['broken', 'conflict', 'error'].includes(i.status));
+    const needs = s.items.filter(i => !this.recoveryPending(i) && ['broken', 'conflict', 'error'].includes(i.status));
     if (needs.length) this.root.createDiv({ text: `${needs.length} 项需处理。损坏入口可单独修复；冲突内容保留。批量安装会列出跳过原因。`, cls: 'tw-skills-notice' });
     if (!s.items.some(i => i.name === this.selected)) this.selected = s.items[0]?.name;
     const grid = this.root.createDiv({ cls: 'tw-skills-grid' });
@@ -73,10 +82,13 @@ class SkillInstallationUI {
     const head = list.createDiv({ cls: 'tw-skills-list-head' });
     head.createEl('h2', { text: '选择 Skill' }); head.createSpan({ text: `${s.items.filter(i => i.status === 'installed').length} / ${s.items.length} 已安装`, cls: 'tw-muted' });
     for (const item of s.items) {
-      const b = this.button(list, '', () => { this.selected = item.name; this.render(); this.root.querySelector(`[data-skill="${item.name}"]`)?.focus(); }, { label: `${item.title}，${LABELS[item.status]}` });
+      const b = this.button(list, '', () => { this.selected = item.name; this.render(); this.root.querySelector(`[data-skill="${item.name}"]`)?.focus(); }, { label: `${item.title}，${this.statusText(item)}` });
       b.addClass('tw-skills-item'); b.dataset.skill = item.name; b.setAttribute('aria-pressed', String(item.name === this.selected));
       const row = b.createDiv({ cls: 'tw-skills-item-title' }); row.createEl('strong', { text: item.title }); this.badge(row, item);
-      b.createDiv({ text: item.name, cls: 'tw-skills-id' }); b.createDiv({ text: item.description || item.reason, cls: 'tw-skills-summary' });
+      b.createDiv({ text: item.name, cls: 'tw-skills-id' }); b.createDiv({ text: item.description || (this.recoveryPending(item) ? '上次更新尚未完成，可恢复此前可用版本。' : item.reason), cls: 'tw-skills-summary' });
+      b.createDiv({ text: this.versionText(item), cls: 'tw-muted' });
+      const update = this.updates?.forItem(item, this.agent);
+      if (!this.recoveryPending(item) && update?.kind === 'available') b.createDiv({ text: update.message, cls: 'tw-skills-update' });
     }
     const item = s.items.find(i => i.name === this.selected);
     const detail = grid.createEl('article', { cls: 'tw-skills-detail', attr: { 'aria-label': 'Skill 详情' } });
@@ -85,26 +97,65 @@ class SkillInstallationUI {
     foot.createDiv({ text: `检查时间：${new Date(s.checkedAt).toLocaleString()}。已安装表示本机入口正确且资源可读；宿主发现和实际调用需在新会话中核验。` });
     for (const note of s.isolation.notes) foot.createDiv({ text: note });
   }
-  badge(parent, item) { parent.createSpan({ text: LABELS[item.status], cls: 'tw-skills-badge', attr: { 'data-status': item.status } }); }
+  recoveryPending(item) { return this.snapshot?.packageOperation?.recoverable && this.snapshot.packageOperation.name === item.name; }
+  statusText(item) { return this.recoveryPending(item) ? '待恢复' : LABELS[item.status]; }
+  badge(parent, item) { parent.createSpan({ text: this.statusText(item), cls: 'tw-skills-badge', attr: { 'data-status': this.recoveryPending(item) ? 'recovery' : item.status } }); }
+  versionText(item) { return this.recoveryPending(item) ? '更新未完成 · 恢复后核对版本' : item.status === 'installed' ? item.installedVersion ? `已安装 v${item.installedVersion}` : '已安装 · 旧版尚无独立版本号' : item.resourceVersion ? `可安装 v${item.resourceVersion}` : '旧版资源尚无独立版本号'; }
   detail(parent, item) {
     this.badge(parent, item); parent.createEl('h2', { text: item.title });
     parent.createDiv({ text: item.name, cls: 'tw-skills-id' }); parent.createEl('p', { text: item.description });
+    parent.createEl('strong', { text: this.versionText(item) });
+    const recovering = this.recoveryPending(item);
+    const update = recovering ? { kind: 'recovery', message: '请先使用“恢复上次更新”恢复此前可用版本，再重新检查。' } : this.updates?.forItem(item, this.agent);
+    if (update) {
+      parent.createEl('p', { text: update.message, cls: ['unknown', 'incompatible'].includes(update.kind) ? 'tw-warning' : '' });
+      if (update.version) parent.createDiv({ text: `正式可用版本 v${update.version}` });
+      if (update.notes) { parent.createEl('h3', { text: '更新说明' }); parent.createEl('p', { text: update.notes }); }
+    }
     const fact = parent.createDiv({ cls: 'tw-skills-facts' });
     fact.createEl('strong', { text: `${HOSTS[this.agent].name} 发现入口` }); fact.createDiv({ text: item.entry, cls: 'tw-skills-path' });
-    fact.createDiv({ text: `内置资源：${item.source}`, cls: 'tw-skills-path' });
+    fact.createDiv({ text: `安装资源：${item.source}`, cls: 'tw-skills-path' });
     if (item.previous) fact.createDiv({ text: `旧名称入口：${item.previous.entry}`, cls: 'tw-skills-path' });
     if (item.target) fact.createDiv({ text: `当前链接目标：${item.target}`, cls: 'tw-skills-path' });
-    if (item.reason) fact.createEl('p', { text: item.reason, cls: 'tw-warning' });
+    if (item.reason && !recovering) fact.createEl('p', { text: item.reason, cls: 'tw-warning' });
     const actions = parent.createDiv({ cls: 'tw-skills-actions' });
+    if (update?.kind === 'available' && ['installed', 'absent'].includes(item.status)) this.button(actions, `更新至 v${update.version}`, () => this.updateSkill(item), { primary: true, disabled: !this.writable() || this.checkingUpdates });
     if (item.status === 'absent') this.button(actions, '安装到 ' + HOSTS[this.agent].name, () => this.perform('install', [item.name]), { primary: true, disabled: !this.writable() });
     if (item.status === 'broken') this.button(actions, item.previous ? '迁移为新名称' : '修复入口', () => this.perform('repair', [item.name]), { primary: true, disabled: !this.writable() });
-    if (item.status === 'installed') this.button(actions, '使用说明', () => this.usage(item), { primary: true });
+    if (item.status === 'installed' && !recovering) this.button(actions, '使用说明', () => this.usage(item), { primary: true });
     if (['installed', 'broken'].includes(item.status) && !item.previous) this.button(actions, '移除安装…', () => this.confirmRemove(item), { disabled: !this.writable() });
-    if (['conflict', 'error'].includes(item.status)) this.button(actions, '处理后重新检查', () => this.refresh());
+    if (!recovering && ['conflict', 'error'].includes(item.status)) this.button(actions, '处理后重新检查', () => this.refresh());
     parent.createEl('h3', { text: '安装后怎么用' }); parent.createEl('p', { text: item.next });
     if (item.example) parent.createDiv({ text: item.example, cls: 'tw-skills-example' });
     if (item.related) this.button(parent, item.related === '@fns' ? '打开 FNS 配置同步' : '打开 Agent 规则', () => this.view.navigate(item.related));
-    parent.createEl('p', { text: '从当前库根目录新开所选宿主的会话，核对 Skill 列表，再提供真实目标和内容。资源随插件更新；服务配置与规则接入分别操作。', cls: 'tw-muted' });
+    parent.createEl('p', { text: '两个已注册宿主共用磁盘上的 Skill 版本。更新后从当前库根目录新开会话，核对实际调用的名称和版本；旧会话可能保留旧指令。', cls: 'tw-muted' });
+  }
+  async checkUpdates() {
+    if (!this.updates || this.checkingUpdates || this.busy) return;
+    this.checkingUpdates = true; this.render();
+    try { await this.updates.check(); }
+    finally { this.checkingUpdates = false; if (this.active()) this.render(); }
+  }
+  async updateSkill(item) {
+    if (!this.writable()) return;
+    const agent = this.agent; this.busy = true; this.error = ''; this.render();
+    try {
+      const result = await this.updates.install({ name: item.name, agent, expected: item.token });
+      this.receipts[agent] = { ok: true, results: [{ name: item.name, outcome: 'success', message: result.message }] };
+      if (agent === this.agent) this.snapshot = result.snapshot;
+    } catch (error) {
+      this.receipts[agent] = { ok: false, results: [{ name: item.name, outcome: 'failed', message: error.message }] };
+      try { if (agent === this.agent) this.snapshot = await this.manager.scan(agent); } catch (error) { this.error = error.message; }
+    } finally { this.busy = false; if (this.active()) this.render(); }
+  }
+  async recoverUpdate(operation) {
+    if (this.busy) return;
+    const agent = this.agent; this.busy = true; this.error = ''; this.render();
+    try {
+      const result = await this.updates.recover({ operation, agent }); this.snapshot = result.snapshot;
+      this.receipts[agent] = { ok: true, results: [{ name: result.name, outcome: 'success', message: '此前版本已恢复，请重新检查正式更新。' }] };
+    } catch (error) { this.error = error.message; }
+    finally { this.busy = false; if (this.active()) this.render(); }
   }
   batch() {
     const items = this.snapshot.items, names = items.map(i => i.name);

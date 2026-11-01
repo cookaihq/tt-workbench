@@ -12,7 +12,7 @@ async function fixture(t) {
   const vault = path.join(root, 'target'), software = path.join(vault, 'custom/plugins/tt-workbench');
   await fs.mkdir(path.join(software, 'scripts/agent-skills'), { recursive: true });
   await fs.cp(path.join(repository, 'scripts/agent-skills/install.mjs'), path.join(software, 'scripts/agent-skills/install.mjs'));
-  for (const dir of ['config', 'agent-skills', 'runtime']) await fs.cp(path.join(repository, 'lib', dir), path.join(software, 'lib', dir), { recursive: true });
+  for (const dir of ['config', 'agent-skills', 'runtime', 'github', 'vault/vendor']) await fs.cp(path.join(repository, 'lib', dir), path.join(software, 'lib', dir), { recursive: true });
   await fs.mkdir(path.join(software, 'lib/fns')); await fs.cp(path.join(repository, 'lib/fns/rules.cjs'), path.join(software, 'lib/fns/rules.cjs'));
   await fs.mkdir(path.join(software, 'skills/sample'), { recursive: true });
   await fs.writeFile(path.join(software, 'skills/manifest.jsonc'), '{"skills":["sample"]}');

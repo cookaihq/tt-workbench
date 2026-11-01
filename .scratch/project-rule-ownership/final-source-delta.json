@@ -1,0 +1,46 @@
+{
+  "recordedAt": "2026-10-29T10:31:15.634Z",
+  "basis": "This delivery is the frozen build, not the continuously changing shared worktree.",
+  "releaseSha256": "19f50add60bb72c3b79a279aa62093adcf421abd379ae0671cdd8caecc51ee95",
+  "frozenSourceAt": "2026-10-29T10:27:23.222Z",
+  "observedWorkspaceAt": "2026-10-29T10:31:15.578Z",
+  "firstDeliveryToFinalSnapshot": [
+    {
+      "file": "docs/agents/agent-config-sync.md",
+      "before": "2b54aaf1aeab7eb62ad78bbb69f7445b50cf921ba6bc2cca28541ea2991b1ba7",
+      "after": "8e8254451186c5b299c3e4698981f7d895fc5ed18976335b854d37b81275fd89"
+    },
+    {
+      "file": "docs/agents/fns-device-config.md",
+      "before": "a62de90cda3f2abf9213fbc61bbc2794927ae2c019c220f6bb91d9d5301e1d0d",
+      "after": "6f5a39dbdf7c6461b3530d6e3d0c3a0111fcafa6b3ce22a95461450ff16d85ce"
+    },
+    {
+      "file": "docs/agents/fns-hidden-item-check.md",
+      "before": "caf509dfd3b1f32f9f6033a9340ba8d7b4cd5a60d46824c105a54f55d653db69",
+      "after": "71f6c612120134ab51d8a76680882fce39f7c8712cd74909ca4824210d8944cc"
+    },
+    {
+      "file": "docs/rules/fns-config-sync.md",
+      "before": "92c1b12f794ef8a82da81ae8394269c898f3587703d504fab3b8cd36f3af3827",
+      "after": "e6e2594d1190319fe42bd09d00d21c26cb99d06cbeeebf439929a2a62859af48"
+    },
+    {
+      "file": "docs/workbench/updates.md",
+      "before": "138967a8208c87d9e219874f471102b3e49eec8ec66be9e3edd10ec60c978289",
+      "after": "da3ddef6bb11bbf43e6a15fdaffde74c7ac07e75cd4da1fd176b0de5ef760b42"
+    },
+    {
+      "file": "lib/fns/tests/local-protection.test.cjs",
+      "before": "8f8b40d73bfc980072ef5faca6767645175779dd9386f1b44fd47ea8ab785f5c",
+      "after": "0f4a6ffa13efb4b6964899d88ae60eda220b278ac8d1650577e485d9f2cb37da"
+    },
+    {
+      "file": "lib/fns/workbench-scope.cjs",
+      "before": "e333e04200d39ad322043860c21b6fdc90b70aa1fa06cc1fc4cff7cf9d8ab2a0",
+      "after": "870e16fe1cb990987ca4ccb0e7b3622a6443fa34e38f6ec4ec258c178aad9578"
+    }
+  ],
+  "workspaceAfterFinalSnapshot": [],
+  "laterChangesDeliveryOwner": "The session that owns those concurrent changes; no further rebuild or installation in this task."
+}

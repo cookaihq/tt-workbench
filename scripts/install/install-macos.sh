@@ -116,7 +116,7 @@ function object(value) { return value && typeof value === 'object' && !Array.isA
 function validateRelease(release) {
   if (!object(release) || release.schema !== 1 || release.id !== 'tt-workbench' || !/^\d+\.\d+\.\d+$/.test(release.version) || !object(release.files)) fail('Invalid release manifest.');
   var names = Object.keys(release.files), paths = Object.create(null);
-  if (!names.length || names.length > 2000) fail('Invalid file count.');
+  if (!names.length || names.length > 10000) fail('Invalid file count.');
   names.forEach(function (name) {
     relative(name);
     var lower = name.toLowerCase();

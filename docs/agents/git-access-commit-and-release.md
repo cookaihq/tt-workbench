@@ -1,12 +1,14 @@
-# tt-workbench Git 使用说明
+# Git 仓库接入、提交与版本发布
 
-适用于工作台源码仓库的 Git 接入、读取、分支、Worktree、提交与发布。路径均相对源码仓库根；知识库实例的 Git、FNS 配置传输及凭据由实例自己的规则管理。
+适用于工作台源码仓库的 Git 接入、读取、分支、Worktree、提交，以及工作台或 Skill 发布的准备与执行。路径均相对源码仓库根；知识库实例的 Git、FNS 配置传输及凭据由实例自己的规则管理。
 
 ## 仓库与操作范围
 
+本项目的主仓为 GitHub `cookaihq/tt-workbench`，主要远端为 `origin`。2026-10-29 用户明确选择后，仓库级默认推送远端设为 `remote.pushDefault=origin`，`main` 跟踪 `origin/main`，远端默认分支记录为 `origin/HEAD -> origin/main`。默认目标配置不构成自动推送授权；普通 Git 按下文本机接入读取已选来源，Agent 的身份核验与发布仍遵守对应流程。
+
 远端 `origin` 的读取与推送地址均为 `https://github.com/cookaihq/tt-workbench.git`。2026-10-29 使用仓库独立 Token 完成接入及读取回读；GitHub 返回账号为 `cookaihq`，远端默认分支为 `main`，当次可见提交为 `6bf7342a8063ab77295a07ffc463d8ba120da518`。
 
-本次只验证身份、实际 remote 配置和 `ls-remote` 可见引用，未 fetch、合并、提交或推送；本地与远端历史关系、推送权限及 Release 均未验证。后续发布前重新读取远端并检查历史，不能把这次接入当作历史已同步。
+首次接入只验证身份、实际 remote 配置和 `ls-remote` 可见引用，当时未 fetch、合并、提交或推送，也未验证本地与远端历史关系、推送权限及 Release。后续发布前重新读取远端并检查历史，不能把首次接入当作历史已同步。
 
 本仓是独立仓库；与原 tannt 仓库的关系见 [ADR 0005](../adr/0005-independent-workbench-repository.md)。目录嵌套、相同 URL 或相邻目录不证明管理关系。初检只有主检出，没有登记子仓或子模块。每次操作先核对实际检出：
 
@@ -29,15 +31,25 @@ git config --show-origin --get user.email
 
 用户明确选择本仓独立 Token，方式为 `github-token`。唯一来源是主检出的 `.credentials/repositories/cookaihq--tt-workbench.github-token`，目标仅为 `https://github.com/cookaihq/tt-workbench.git`。2026-10-31 用户统一指定此文件名；各设备以各自的主检出根目录为基准，保持这一相对路径。调用工具时显式传入该文件，不以工具默认生成的名称替代。后续调用直接读取该文件当前值，不使用本机 `gh` 登录、环境 Token 或全局 helper；来源缺失或失效时修复此文件，不自动切换。
 
-文件内容只能是单行 Token 原文，不加引号、变量名或 URL，允许一个末尾换行。2026-10-29 用户填写并明确回复后已完成验证；通过本机 `.git/info/exclude` 忽略该精确路径，文件及两个父目录的 Windows ACL 仅允许当前用户访问，已禁用继承。每次使用前核对未跟踪、被 Git 忽略且为无链接的普通文件；其他设备分别核验 Windows 私有 ACL 或 Unix 目录 700、文件 600。新设备首次准备文件后也须等待用户明确已填写才读取。Token 不进入对话、参数、remote、规则或日志。
+文件内容只能是单行 Token 原文，不加引号、变量名或 URL，允许一个末尾换行。2026-10-29 用户填写并明确回复后已完成验证；当前由根 `.gitignore` 的 `/.credentials/` 规则忽略，文件及两个父目录的 Windows ACL 仅允许当前用户访问，已禁用继承。每次使用前核对未跟踪、被 Git 忽略且为无链接的普通文件；其他设备分别核验 Windows 私有 ACL 或 Unix 目录 700、文件 600。新设备首次准备文件后也须等待用户明确已填写才读取。Token 不进入对话、参数、remote、规则或日志。
 
 本机确有来源差异需要记录时，使用主检出的 `.credentials/repositories/sources.local.md`，保持未跟踪且被忽略。唯一 JSON fenced array 只记录 `{url, method, account}` 或 `{url, method, file}`，文件路径相对主检出，不记录秘密、验证状态或 Token 指纹。没有记录时沿用本节已经明确的来源，不能从活动账号、其他仓库或全局 helper 补选。能从本节重建时无需另存记录。
 
 当前没有 CNB 远端或 GitHub/CNB 同步策略。今后明确接入 CNB 时，先单独选择来源；CNB 文件保存一行带身份字段的 HTTPS 仓库 URL：主机为 `cnb.cool`，路径为完整仓库路径，用户名固定为 `cnb`，密码字段为 Token，Token 的 URL 特殊字符须编码。不得借用知识库的凭证或传输仓库。
 
-## 按次鉴权，不依赖安装本 Skill
+## 普通 Git 与推送按钮的本机接入
 
-普通终端、IDE、CI 继续使用各自既有鉴权，不会自动读取自定义凭证目录。Agent 使用下面的过程构造本次 Git 子进程环境；仅在已忽略的 `tmp/git-setup/` 放置必要短期 helper，文件不含 Token。无需安装持久 helper 或复制 Skill 实现。
+本机已按用户授权，把普通 Git 和 Orca 推送按钮接到同一 Token 文件。正式 helper 为 [`scripts/git/credential-helper.mjs`](../../scripts/git/credential-helper.mjs)，独立使用 Node.js，不依赖 git-setup Skill 安装位置。它只接受 HTTPS `github.com`、完整路径 `cookaihq/tt-workbench`（允许 `.git`）和 `x-access-token` 用户名；每次 `get` 核对当前检出与主检出的 common Git 目录、文件未跟踪且被忽略、普通单链接文件及私有权限后，读取文件当前值。Token 轮换后下一次调用直接生效；`store`、`erase` 不写入或删除来源。
+
+接入配置写在仓库 common Git 配置中，供该仓主检出及关联 Worktree 使用；其他仓库和全局配置不受影响。分别匹配 `https://github.com/cookaihq/tt-workbench.git` 与省略末尾 `.git` 的地址。配置、修复或向其他项目迁移该接入时，必须读取并遵守 [GitHub 项目 Token 接入](github-project-token-setup.md)，其中维护完整配置表、首次接入模板、脚本适配及验收流程；本仓具体目标和唯一来源仍以上文为准。
+
+本机配置不随 clone 同步。其他设备以各自主检出为基准，保持 `scripts/git/credential-helper.mjs` 与 `.credentials/repositories/cookaihq--tt-workbench.github-token` 的相对路径，分别准备已授权凭证、核对权限并重建本机接入；移动主检出或更换 Node 位置后也须重新核对命令路径。CI 的来源及接入须单独明确。
+
+验证时捕获 `git credential fill` 的输出并只报告是否匹配原来源，禁止直接回显；用该凭据核验 GitHub 身份，再在禁止交互的环境执行 `git push --dry-run --set-upstream origin HEAD`。2026-10-29 本机已通过此验证，身份为 `cookaihq`；这证明普通 Git 能完成本次推送预演，未实际点击 UI 按钮或写入远端，也不证明未来提交能通过分支保护与服务器检查。回归测试入口为 `node --test scripts/git/credential-helper.test.mjs`，亦纳入 `npm test`；实施记录见 [普通 Git 认证修复](../../.scratch/git-credential-repair/implementation.md)。
+
+## Agent 按次鉴权
+
+Agent 的账号核验、API 调用与发布仍使用下面的过程构造本次 Git 子进程环境，以便固定本轮来源及校验 Token 是否在操作期间变化。仅在已忽略的 `tmp/git-setup/` 放置必要短期 helper，文件不含 Token；该过程不依赖安装 git-setup Skill，也不修改上述普通 Git 接入。
 
 1. 核对选定 remote 的完整 HTTPS 地址与本节目标一致。捕获而不回显 URL 匹配后的 `http.extraHeader`；若存在 Authorization、Proxy-Authorization 或 Cookie 鉴权冲突，停止并修复原来源。
 2. 构造干净的子进程环境：清除继承的 `GIT_CONFIG_*` 注入、`GIT_TRACE*`、`GIT_CURL_VERBOSE`、`GH_TOKEN`、`GITHUB_TOKEN`、企业版 Token 及旧的凭证传输变量。宿主通过进程配置声明的 `safe.directory` 仅保留具体绝对路径及清空列表的空值，合并到本次配置；不保留 `*`、递归通配或相对路径，也不修改全局信任。
@@ -75,11 +87,37 @@ Git HTTPS 连接 GitHub 失败或超时时，若本机 `127.0.0.1:7897` 的 Clas
 
 当前没有自动同步机制。若以后明确设置同步，逐个约定来源、目标和完整 refs，只从主要远端已发布引用取得对象；不混入尚未发布的本地引用。逐目标、逐 ref 验证，不能将 Git 引用一致视为 LFS、子模块、Issue、PR、Release 附件或 CI 全部同步。
 
+## 发布范围与 Tag 选择
+
+准备版本号、发布清单或发布说明前，先固定本次实际选中发布的变更范围，再按下表确定唯一发布 Tag。沿用用户已确认的范围与版本；发现范围变化时更新相关产物和记录，不重复确认仍然适用的决定。
+
+| 本次发布范围 | Tag 与交付 |
+| --- | --- |
+| 工作台与 Skill 都有更新 | 使用同一个 `v<工作台版本>` Tag 和 Release，同时交付工作台三个附件、完整 Skill 清单及选中变更项的独立包；不另建本次 `skills-*` Release。 |
+| 只有 Skill 更新 | 使用 `skills-YYYYMMDD.N` Tag，交付完整清单及选中项的独立包；工作台版本不变，Release 不占 GitHub Latest。 |
+| 只有工作台更新 | 使用 `v<工作台版本>` Tag，按既有完整包流程发布；沿用此前正式 Skill 包，Skill 行为版本不变。 |
+
+共用 Tag 只确定发布归属；每个 Skill 的行为版本仍由自己的 `SKILL.md metadata.version` 独立维护。工作台类 Release 沿用工作台 Latest 策略，更新发现仍分别按工作台版本和逐项 Skill 版本判断。
+
+涉及 Skill 更新时，必须读取并执行 [Skill 发布说明](../workbench/skill-releases.md)，从同一固定提交准备同一 Release 的全部附件，经草稿上传、下载核验后一次公开。每种发布都必须读取并执行 [发布时同步仓库设计文档](release-knowledge-docs.md)，记录所选 Tag、工作台版本和逐项 Skill 版本；发布清单、附件来源、说明及版本记录相互一致才完成准备。构建、提交与公开发布分别遵守已有授权。
+
+## 发布工作区与收尾
+
+默认在现有检出中准备发布，固定已审阅、已验证的提交，不为发布新建分支或 Worktree。若并发修改需要隔离，优先将固定提交导出到已忽略的 `tmp/release/<版本>/` 下进行构建与验收，并核对产物对应该提交；只有验收确实需要 Git 检出等原因无法使用导出副本时，才创建临时 Worktree。Worktree 可直接检出固定提交，无须同时创建分支；临时发布分支仅在有明确需要时创建。
+
+发布过程中记录本次创建的临时目录、Worktree、分支及来源提交。正式 Release 的引用和附件回读验证通过后，必须完成以下收尾：
+
+1. 将需保留的安装包、校验记录与测试日志保存到临时检出之外，例如源码根的 `tmp/release/<版本>/artifacts/`，核验复制后的文件，并更新发布记录中的证据路径。
+2. 检查临时检出的暂存、未暂存、未跟踪与忽略文件，以及进程占用；确认没有独立修改或未保存成果后，用 `git worktree remove` 移除本次临时 Worktree。临时分支确认没有待保留的独有提交后清理；不清理正式版本标签、开发分支或其他会话的资源。
+3. 回读 `git worktree list --porcelain`、相关引用和目录状态，确认临时资源已清理、正式标签仍指向发布提交，并在发布记录中注明结果。因占用、未知改动或执行限制无法完成时，明确记录剩余项与原因，不能把发布成功当作清理完成。
+
+发布中断时保留必要的恢复依据，处理或交接尚未清理的临时资源；恢复发布后仍须执行上述收尾。
+
 ## 现有工具与 Release
 
 本仓构建、测试、开发安装入口由 `package.json` 和[开发说明](../workbench/development.md)维护；[README](../../README.md)面向普通用户，提供完整 ZIP 与 Agent 安装入口。Release 步骤见[工作台版本与更新](../workbench/updates.md)。发布前按该流程执行 `npm test`、`npm run build`，核对版本并验证完整包；使用 CLI 安装时始终明确 `--vault <目标库绝对路径>`。
 
-Release 附件为 `dist/tt-workbench.zip`、`dist/release.json` 和 `dist/tt-workbench.bundle.json.gz`，需要单独明确发布授权。当前没有专用的 GitHub 推送、PR 或 Release 上传脚本、hook 或 CI；构建成功不会自动提交、推送或发布。只修改 Git 说明时检查文本、引用和实际 Git 配置，无需重跑应用测试。
+工作台 Release 附件为 `tt-workbench.zip`、`release.json` 和 `tt-workbench.bundle.json.gz`，需要单独明确发布授权。仅工作台构建输出在 `dist/`；涉及 Skill 更新的单独或联合发布，由 [Skill 发布说明](../workbench/skill-releases.md) 中的同一手动 GitHub Actions 工作流生成对应附件，输出在 `dist/skills/<Tag>/`。其短期 Actions Token 与上文本机独立 Token 分别管理。启动工作流属于公开发布动作，仍固定目标、提交、Tag 及选中范围。构建成功不会自动提交、推送或启动发布；尚未执行的 CI 不算已发布或远端验收。只修改 Git 说明时检查文本、引用和实际 Git 配置，无需重跑应用测试。
 
 已安装 git-setup 时可调用其当前实体的 `scripts/git-setup/cli.mjs`：`check` 检查现状，`read --remote origin` 验证读取，`setup` 计划接入，`audit --ref <完整引用>` 审查历史，`publish --remote origin --ref <完整引用>` 预览发布。鉴权显式传入 `--auth-method github-token --credential-file <主检出绝对路径>/.credentials/repositories/cookaihq--tt-workbench.github-token`；设置或发布的执行使用同参数、`--apply` 和本次 `--expected-fingerprint`。脚本计划不扩大授权；未安装 Skill 时执行本文上述标准 Git 与临时鉴权过程。
 

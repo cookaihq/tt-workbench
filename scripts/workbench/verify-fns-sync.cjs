@@ -110,14 +110,14 @@ module.exports = async function verifyFns(app, { migrate = false } = {}) {
       view.fnsUI.panel.querySelectorAll('[role=tab]')[0].click();
     }
     browser.setSize(1280, 860); await pause(150);
-    await view.fnsUI.checkDialog();
-    assert.ok(view.contentEl.querySelector('dialog[open]')?.textContent.includes('当前设备检查'));
+    view.fnsUI.checkDialog(); await view.fnsUI.localUI.refresh();
+    assert.ok(view.contentEl.querySelector('dialog[open]')?.textContent.includes('本机文件排除'));
     view.contentEl.querySelector('dialog[open]').close();
     for (const scope of ['@tasks', '@projects', '@issues', '']) {
       view.navigate(scope); await pause(150); assert.equal(view.fnsUI.panel.hidden, true); assert.equal(view.searchInput.disabled, false);
     }
     view.navigate('@fns'); await view.fnsUI.refresh();
-    report.checks.push('1280/420 宽度、真实方向键切换、设备检查弹窗与业务导航回归');
+    report.checks.push('1280/420 宽度、真实方向键切换、本机检查弹窗与业务导航回归');
     const nativeRuntime = require(path.join(root, '.obsidian/plugins/tt-workbench/fns-runtime.js')).createFnsRuntime(app);
     const beforeRuntime = { ...(await nativeRuntime.inspect()).settings };
     await checkpoint('暂停并恢复真实 FNS');

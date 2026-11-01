@@ -13,6 +13,8 @@
 
 工作台按 `0.收件箱`、`1.项目`、`2.领域`、`3.资源`、`4.存档` 组织内容，知识库名称和位置不限。目录约定见[知识库结构](docs/rules/scope-and-directories.md)。
 
+知识库自行维护业务规则、场景和概念。配套 Skill 沿目标库的实际 Agent 入口读取规则，再核对工作台能力；安装和更新保留这些文件。采用默认规则及处理能力差异见[规则读取说明](docs/agents/package-layout.md#目标库规则读取)。
+
 ## 安装
 
 需要 **桌面版 Obsidian 1.8.7 或更新版本**，以及一个已经创建的知识库。安装工作台无需克隆源码、安装 Node.js 或执行构建命令。
@@ -23,7 +25,7 @@
 
 以下步骤用于首次安装。已有工作台请看[更新](#更新)；旧版 `tannt-workbench` 用户请看[改名迁移说明](docs/workbench/updates.md#从-tannt-改名迁移)。
 
-1. 打开 [Releases 下载页](https://github.com/cookaihq/tt-workbench/releases)，在最新正式版本的 **Assets（附件）** 中下载 **`tt-workbench.zip`**。页面自动生成的 `Source code` 是源码压缩包，不用于安装。
+1. 打开 [Releases 下载页](https://github.com/cookaihq/tt-workbench/releases)，在最新正式工作台 **`v<版本>`** 的 **Assets（附件）** 中下载 **`tt-workbench.zip`**。`skills-…` 是 Skill 更新批次；页面自动生成的 `Source code` 是源码压缩包，均不用于安装工作台。
 2. 退出 Obsidian，解压安装包，将里面的整个 **`tt-workbench` 文件夹**放入知识库的 `.obsidian/plugins/` 目录；没有 `plugins` 文件夹时创建它。
 3. 确认目录如下，并保留包内全部文件与子目录：
 
@@ -121,6 +123,8 @@ tt_installer="$(curl -fsSL https://raw.githubusercontent.com/cookaihq/tt-workben
 | `tt-organize-agent-rules` | 整理规则并接入选定的规则源 |
 
 安装后，在目标知识库中新开 Agent 会话，检查 Skill 是否可用。外部 Agent 调用配套命令行工具需要 Node.js 22 或更新版本；网盘账号等服务按对应 Skill 的指引单独配置。详见[Skill 安装与使用](docs/workbench/agent-skill-setup.md)。
+
+每项 Skill 有自己的版本。页面显示已安装版本、可用新版与更新说明；点击「检查 Skill 更新」后按项更新。调用时 Agent 提示本次使用的名称和版本，更新后请在新会话核对。工作台升级会保留已采用的独立 Skill 版本。
 
 ## 更新
 

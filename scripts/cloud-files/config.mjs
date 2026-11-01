@@ -35,11 +35,12 @@ export function parseTargets(source) {
   return validateTargets(targets);
 }
 
-export function selectUploadTarget(targets, account = undefined) {
+export function selectUploadTarget(targets, account = undefined, vaultDirectory) {
   validateTargets(targets);
   const selected = account === undefined ? targets.default_account : account;
   if (!validAlias(selected) || !Object.hasOwn(targets.remote_parents, selected)) fail('ACCOUNT_UNCONFIGURED', '选定上传账号未配置父目录；未回退到其他账号。');
-  return { account_ref: selected, remote_parent: targets.remote_parents[selected], remote_root: path.posix.join(targets.remote_parents[selected], 'tannt') };
+  if (typeof vaultDirectory !== 'string' || !vaultDirectory || vaultDirectory.trim() !== vaultDirectory || ['.', '..'].includes(vaultDirectory) || /[\/\\\u0000-\u001f\u007f]/u.test(vaultDirectory)) fail('VAULT_DIRECTORY_REQUIRED', '需要目标库规则或本次明确选择的库网盘目录名；须为单个非空路径段，未采用软件默认值。');
+  return { account_ref: selected, remote_parent: targets.remote_parents[selected], remote_root: path.posix.join(targets.remote_parents[selected], vaultDirectory) };
 }
 
 export async function inspectConfig(root, { configPath = CONFIG_PATH, files = new VaultFiles(root) } = {}) {

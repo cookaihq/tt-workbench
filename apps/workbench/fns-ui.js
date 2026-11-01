@@ -1,4 +1,6 @@
 'use strict';
+const path = require('node:path');
+const { FnsLocalUI } = require('./fns-local-ui.js');
 const FIELDS = [
   ['configSyncOtherDirs', '增加目录同步', '额外纳入同步的库内目录'],
   ['syncExcludeFolders', '排除目录', '不参与同步的路径与目录'],
@@ -6,7 +8,7 @@ const FIELDS = [
   ['syncExcludeWhitelist', '排除白名单', '优先于排除规则的例外']
 ];
 const STATUS = { 'no-publication': '尚无权威版本', 'update-available': '有版本可应用', equal: '规则内容一致',
-  ready: '本机配置正常', 'authority-invalid': '远端发布异常，应用已阻止',
+  ready: '本机配置正常', 'authority-invalid': '远端发布异常，应用已阻止', 'authority-recheck': '旧校验记录待重新检查',
   applied: '本机已应用并核验', written: '已写入，待加载核验', 'local-changes': '本机有未发布修改', pending: '发布等待推送',
   'needs-migration': '旧配置待迁回', 'missing-config': '请先配置 FNS', 'foreign-link': '配置归属需核对', 'broken-link': '本机链接已断开', conflict: '配置冲突' };
 const key = r => JSON.stringify(r);
@@ -15,18 +17,54 @@ const reasonFor = (notes, field, rule) => notes?.find(note => noteKey(note.field
 class FnsUI {
   constructor(view) { this.view = view; this.service = view.plugin.fns; this.field = FIELDS[0][0]; this.generation = 0; this.busy = false; }
   build(parent) { this.panel = parent.createDiv({ cls: 'tw-fns-panel' }); this.panel.hidden = true; }
-  active() { return !this.view.closed && this.view.pageScope === '@fns'; }
-  async refresh() {
-    if (!this.active() || this.busy) return;
-    const generation = ++this.generation;
-    try {
-      const report = await this.service.inspect();
-      if (generation !== this.generation || !this.active()) return;
-      this.report = report; this.error = ''; this.render();
-    } catch (error) {
-      if (generation !== this.generation || !this.active()) return;
-      this.error = error.message; this.render();
+  active() { return !this.disposed && !this.view.closed && this.view.pageScope === '@fns'; }
+  fileChanged(filename) {
+    if (!this.active() || typeof filename !== 'string') return;
+    const configDir = this.service.options.configDir || '.obsidian';
+    filename = filename.replace(/\\/g, '/');
+    const paths = [`${configDir}/plugins/fast-note-sync/data.json`, `${configDir}/plugins/fast-note-sync/manifest.json`,
+      `${configDir}/community-plugins.json`, '.gitignore', '.system/workbench/runtime.jsonc'];
+    // Remember the selected runtime path when reading the page. Ordinary note
+    // events should not resolve configuration or start an FNS inspection.
+    if (!paths.includes(filename) && filename !== this.statePath && !['config/fns-config', '.fns-config'].includes(filename)) return;
+    if (!this.busy) ++this.generation;
+    clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(() => { this.refreshTimer = null; void this.refresh(); }, 150);
+  }
+  async readReport() {
+    const report = await this.service.inspect();
+    if (this.active() && report.application?.code === 'PROTECTED_SCOPE' && !report.blocked) {
+      try { report.localProtection = await this.view.plugin.inspectLocalProtection(); }
+      catch { report.localProtection = null; }
     }
+    return report;
+  }
+  refresh() {
+    if (!this.active() || this.busy) return Promise.resolve();
+    clearTimeout(this.refreshTimer); this.refreshTimer = null;
+    ++this.generation; this.refreshRequested = true;
+    this.refreshPromise ||= this.drainRefreshes().finally(() => { this.refreshPromise = null; });
+    return this.refreshPromise;
+  }
+  async drainRefreshes() {
+    while (this.refreshRequested && this.active() && !this.busy) {
+      this.refreshRequested = false;
+      const generation = this.generation;
+      try {
+        if (this.service.vault) this.statePath = path.relative(this.service.vault, path.join(this.service.data, 'state.json')).replace(/\\/g, '/');
+        const report = await this.readReport();
+        if (generation !== this.generation || !this.active() || this.busy) continue;
+        this.report = report; this.error = ''; this.render();
+      } catch (error) {
+        if (generation !== this.generation || !this.active() || this.busy) continue;
+        this.error = error.message; this.render();
+      }
+    }
+    this.refreshRequested = false;
+  }
+  leave() {
+    ++this.generation; this.refreshRequested = false;
+    clearTimeout(this.refreshTimer); this.refreshTimer = null;
   }
   button(parent, title, callback, primary = false) {
     const button = this.view.button(parent, title, title, callback);
@@ -36,15 +74,21 @@ class FnsUI {
   }
   async run(action) {
     if (this.busy) return;
+    ++this.generation;
     this.busy = true; this.message = '正在处理…'; this.render();
     try {
+      await this.refreshPromise;
       const result = await action();
       this.message = result?.message || (result?.status === 'published' ? `v${result.version} 已推送；其他设备仍需接收并应用。` : '检查已完成。');
       this.error = '';
     } catch (error) { this.error = error.message; this.message = ''; }
     finally {
+      const actionError = this.error;
       this.busy = false;
-      try { this.report = await this.service.inspect(); } catch (error) { this.error ||= error.message; }
+      if (this.active()) {
+        await this.refresh();
+        if (actionError) this.error = actionError;
+      }
       if (this.active()) this.render();
     }
   }
@@ -53,14 +97,17 @@ class FnsUI {
     const p = this.panel, report = this.report;
     p.empty(); p.setAttribute('aria-busy', String(this.busy));
     const actions = p.createDiv({ cls: 'tw-fns-actions' });
-    this.button(actions, '设备检查', () => this.checkDialog());
+    this.button(actions, '本机检查', () => this.checkDialog());
     this.button(actions, '检查更新', () => this.run(() => this.service.checkUpdates()));
     const publish = this.button(actions, '发布本机配置', () => this.prepare('publish'));
     publish.disabled ||= report?.device?.status !== 'ready' || Boolean(report?.pending);
     const notes = this.button(actions, this.notesEditorDraft ? '继续编辑说明' : '编辑说明', () => this.notesDialog());
     notes.disabled ||= report?.device?.status !== 'ready' || Boolean(report?.pending);
     if (this.error) p.createDiv({ text: this.error, cls: 'tw-fns-alert', attr: { role: 'alert' } });
-    if (report?.blocked) p.createDiv({ text: '已发现远端发布内容或历史异常。最近收到的版本仅供回查；请修复发布并重新检查更新。', cls: 'tw-fns-alert', attr: { role: 'alert' } });
+    if (report?.blocked) p.createDiv({ text: report.blocked.code === 'PROTECTED_SCOPE'
+      ? '旧版本留下了目录排除校验记录。请点击“检查更新”重新核验发布；本机排除可在“本机检查”中处理。'
+      : '已发现远端发布内容或历史异常。最近收到的版本仅供回查；请修复发布并重新检查更新。', cls: 'tw-fns-alert', attr: { role: 'alert' } });
+    if (report?.application?.message && !report.blocked) this.applicationAlert(p, report);
     if (this.message) p.createDiv({ text: this.message, cls: 'tw-fns-message', attr: { role: 'status', 'aria-live': 'polite' } });
     if (report?.notes?.draft) p.createDiv({ text: report.notes.conflict
       ? '说明草稿基于较早版本。请编辑说明，核对当前版本后重新保存，再发布。'
@@ -70,7 +117,7 @@ class FnsUI {
     const identity = top.createDiv();
     identity.createEl('strong', { text: report.device.deviceId || '本机身份待识别' });
     identity.createDiv({ text: `本机记录：${report.applied ? 'v' + report.applied.version : '尚无应用记录'}  →  已接收权威版本：${report.publication ? 'v' + report.publication.version : '无'}`, cls: 'tw-fns-caption' });
-    top.createSpan({ text: STATUS[report.status] || report.status, cls: 'tw-pill' });
+    top.createSpan({ text: report.application?.allowed === false && !report.blocked ? '此版本暂不可应用' : STATUS[report.status] || report.status, cls: 'tw-pill' });
     for (const warning of report.runtime?.warnings || []) p.createDiv({ text: warning, cls: 'tw-warning' });
     if (report.device.status !== 'ready') {
       p.createEl('p', { text: report.device.message || '将旧配置迁回插件目录后，即可比较和应用。', cls: 'tw-fns-empty' });
@@ -111,7 +158,7 @@ class FnsUI {
     if (report.pending) {
       this.button(footer, `重试推送 v${report.pending.version}`, () => this.run(() => this.service.retryPublish()), true);
       this.button(footer, '放弃待推送记录', () => this.confirmDiscard());
-    } else if (report.publication) { const apply = this.button(footer, '比较并应用', () => this.prepare('apply'), true); apply.disabled ||= Boolean(report.blocked); }
+    } else if (report.publication) { const apply = this.button(footer, '比较并应用', () => this.prepare('apply'), true); apply.disabled ||= Boolean(report.blocked) || report.application?.allowed === false; }
     else this.button(footer, '发布本机配置', () => this.prepare('publish'), true);
     p.createEl('p', { text: '同步范围为以上四组。应用会保存恢复记录，并保留本机账号及其他设备设置。', cls: 'tw-fns-caption' });
     if (report.recovery) {
@@ -119,6 +166,31 @@ class FnsUI {
       details.createEl('p', { text: report.recovery, cls: 'tw-fns-caption' });
       this.button(details, '恢复上次应用前的规则', () => this.confirmRecover());
     }
+  }
+  applicationAlert(parent, report) {
+    if (report.application.code !== 'PROTECTED_SCOPE') {
+      parent.createDiv({ text: report.application.message + ' 可调整本机规则后发布新版本。', cls: 'tw-fns-alert', attr: { role: 'alert' } });
+      return;
+    }
+    const local = report.localProtection;
+    const alert = parent.createDiv({ cls: 'tw-fns-alert tw-fns-alert-action', attr: { role: 'alert' } });
+    const content = alert.createDiv({ cls: 'tw-fns-alert-content' });
+    content.createDiv({ text: `权威版本 v${report.publication.version} 未满足本机文件排除要求，暂不能应用。` });
+    content.createDiv({ text: local?.configured
+      ? (local.status === 'configured' ? '本机排除已齐全并生效。' : '本机排除已保存，FNS 加载仍待核验。')
+        + (report.pending ? '请先处理页面下方的待推送记录。' : '请比较并发布修正版。')
+      : local?.canConfigure ? '可一键补齐本机排除，再比较并发布修正版。'
+        : '请先打开本机检查，核对 FNS 配置与排除状态。' });
+    const details = content.createEl('details');
+    details.createEl('summary', { text: '查看原因' });
+    details.createDiv({ text: report.application.message });
+    if (local?.configured) {
+      const publish = this.button(alert, '比较并发布', () => this.prepare('publish'));
+      publish.disabled ||= Boolean(report.pending);
+    } else if (local?.canConfigure) {
+      const configure = this.button(alert, '补齐本机排除', () => this.run(() => this.view.plugin.configureLocalProtection()));
+      configure.title = '自动暂停 FNS、保存恢复材料、补齐本机排除并核验加载';
+    } else this.button(alert, '查看本机检查', () => this.checkDialog());
   }
   column(parent, title, rules, other, change) {
     const column = parent.createDiv({ cls: 'tw-fns-column' }); column.createEl('h3', { text: title });
@@ -189,7 +261,7 @@ class FnsUI {
     this.button(actions, '放弃未保存输入', () => { this.notesEditorDraft = null; dialog.close(); this.render(); });
     const compare = this.button(actions, '重新比较', async () => {
       compare.disabled = true;
-      try { this.report = await this.service.inspect(); dialog.close(); this.notesDialog(focusKey, true); }
+      try { this.report = await this.readReport(); dialog.close(); this.notesDialog(focusKey, true); }
       catch (failure) { error.textContent = failure.message; error.hidden = false; compare.disabled = false; }
     });
     const save = this.button(actions, report.notes.conflict || recompare ? '核对并保存草稿' : '保存说明草稿', async () => {
@@ -253,15 +325,9 @@ class FnsUI {
       }
     }, action === 'publish' ? '确认发布并推送' : '确认应用', () => action === 'publish' ? this.service.publish(plan) : this.service.apply(plan, { replaceLocal: plan.localChanged }));
   }
-  async checkDialog() {
-    await this.refresh();
-    this.dialog('当前设备检查', dialog => {
-      dialog.createEl('p', { text: this.error || `配置状态：${STATUS[this.report?.device?.status] || this.report?.device?.status}` });
-      if (this.report?.device?.deviceId) dialog.createEl('p', { text: '设备：' + this.report.device.deviceId });
-      if (this.report?.device?.source) dialog.createEl('p', { text: '本机配置：' + this.report.device.source });
-      for (const warning of this.report?.runtime?.warnings || []) dialog.createEl('p', { text: warning, cls: 'tw-warning' });
-      dialog.createEl('p', { text: '“检查更新”会核验 Git 远端；设备检查本身不代表远端可达或另一设备已应用。', cls: 'tw-fns-caption' });
-    });
+  checkDialog() {
+    this.localUI ||= new FnsLocalUI(this.view, () => this.refresh());
+    this.localUI.open();
   }
   confirmOnboard() { this.dialog('迁回本机配置', dialog => dialog.createEl('p', { text: '暂停 FNS，将旧链接指向的完整配置迁回插件目录，保留全部设置并清理本机旧源文件，再恢复原启用状态。' }), '确认迁回', () => this.service.onboard()); }
   confirmDiscard() {
@@ -272,6 +338,6 @@ class FnsUI {
     const id = this.report.recovery.split('/').at(-1);
     this.dialog('恢复上次应用前的规则', dialog => dialog.createEl('p', { text: '仅当配置自上次操作后没有变化时恢复；若发现后来修改，将停止并保留现场。' }), '确认恢复', () => this.service.recover(id));
   }
-  dispose() { ++this.generation; for (const d of this.view.contentEl.querySelectorAll('.tw-fns-modal')) d.remove(); }
+  dispose() { this.disposed = true; this.leave(); this.localUI?.dispose(); for (const d of this.view.contentEl.querySelectorAll('.tw-fns-modal')) d.remove(); }
 }
 module.exports = { FnsUI };

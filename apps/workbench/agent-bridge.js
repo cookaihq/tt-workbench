@@ -1,7 +1,7 @@
 "use strict";
 const runtimeStorage = require('./shared.js').runtimeStorage;
 const { ROOTS } = require("./vault-paths.js");
-const http = require("node:http"), fs = require("node:fs/promises"), path = require("node:path");
+const http = require("node:http"), fs = require("node:fs");
 const { randomBytes, createHash } = require("node:crypto");
 const { NoteWriteError, documentParts } = require("./note-editor.js");
 const { localCreation } = require("./inbox.js");
@@ -11,26 +11,72 @@ const hash = value => createHash("sha256").update(value).digest("hex");
 class AgentBridge {
   constructor(plugin) { this.plugin = plugin; this.requests = new Map(); }
   async start() {
+    if (this.session) {
+      if (this.session.stopping) { await this.session.stopping; return this.start(); }
+      if (this.session.stopped) { await this.stop(); return this.start(); }
+      return this.session.started;
+    }
     const p = this.plugin, fns = p.app.plugins.plugins["fast-note-sync"];
-    runtimeStorage.assertFnsExcluded(fns?.settings || {}, p.app.vault.adapter.getBasePath());
-    this.releaseRuntime = await runtimeStorage.lease(p.app.vault.adapter.getBasePath());
+    const root = p.app.vault.adapter.getBasePath();
+    runtimeStorage.assertFnsExcluded(fns?.settings || {}, root);
+    const session = { root, active: new Set(), stopped: false };
+    this.session = session;
     try {
-    const directory = await runtimeStorage.plain(p.app.vault.adapter.getBasePath(), runtimeStorage.relative('', p.app.vault.adapter.getBasePath()), { mkdir: true });
-    this.location = path.join(directory, "agent-bridge.json");
-    try { if ((await fs.lstat(this.location)).isSymbolicLink()) throw Error("连接信息不能是符号链接。"); } catch (e) { if (e.code !== "ENOENT") throw e; }
-    this.token = randomBytes(32).toString("hex");
-    this.server = http.createServer((req, res) => { void this.handle(req, res); });
-    await new Promise((resolve, reject) => { this.server.once("error", reject); this.server.listen(0, "127.0.0.1", resolve); });
-    try {
-      await fs.writeFile(this.location, JSON.stringify({ port: this.server.address().port, token: this.token, vault: p.app.vault.adapter.getBasePath(), pid: process.pid }), { mode: 0o600 });
-      await fs.chmod(this.location, 0o600);
-    } catch (e) { this.server.close(); throw e; }
-    } catch (e) { await this.releaseRuntime(); this.releaseRuntime = null; throw e; }
+      session.release = runtimeStorage.leaseSync(root);
+      session.name = runtimeStorage.relative('agent-bridge.json', root);
+      this.location = session.location = runtimeStorage.plainSync(root, session.name, true);
+      this.token = randomBytes(32).toString("hex");
+      this.server = session.server = http.createServer((req, res) => {
+        if (session.stopped) { req.resume(); res.writeHead(503); res.end(); return; }
+        const operation = this.handle(req, res).catch(() => res.destroy());
+        session.active.add(operation);
+        void operation.then(() => session.active.delete(operation));
+      });
+      session.started = new Promise((resolve, reject) => {
+        session.cancelStart = resolve;
+        session.server.once("error", reject);
+        session.server.listen(0, "127.0.0.1", () => {
+          if (session.stopped) { resolve(); return; }
+          try {
+            runtimeStorage.plainSync(root, session.name, true);
+            session.connection = JSON.stringify({ port: session.server.address().port, token: this.token, vault: root, pid: process.pid });
+            fs.writeFileSync(session.location, session.connection, { mode: 0o600 });
+            fs.chmodSync(session.location, 0o600);
+            resolve();
+          } catch (error) { reject(error); }
+        });
+      });
+      await session.started;
+    } catch (error) { if (this.session === session) await this.stop(); throw error; }
   }
-  async stop() {
-    if (this.server?.listening) await new Promise(resolve => this.server.close(resolve));
-    if (this.location) try { const value = JSON.parse(await fs.readFile(this.location, "utf8")); if (value.token === this.token) await fs.unlink(this.location); } catch {}
-    if (this.releaseRuntime) { await this.releaseRuntime(); this.releaseRuntime = null; }
+  stop() {
+    const session = this.session;
+    if (!session) return Promise.resolve();
+    if (session.stopping) return session.stopping;
+    session.stopped = true;
+    session.cancelStart?.();
+    const closed = new Promise((resolve, reject) => {
+      if (!session.server) { resolve(); return; }
+      session.server.close(error => error && error.code !== 'ERR_SERVER_NOT_RUNNING' ? reject(error) : resolve());
+    });
+    const cleanup = () => {
+      if (session.connection) {
+        runtimeStorage.plainSync(session.root, session.name, true);
+        if (fs.existsSync(session.location) && fs.readFileSync(session.location, 'utf8') === session.connection) fs.unlinkSync(session.location);
+      }
+      session.release?.();
+      if (this.session === session) this.session = null;
+    };
+    // Drain actual handlers, including disconnected clients whose writes are
+    // still executing. server.close alone only waits for network connections.
+    let stopped;
+    if (session.active.size) stopped = Promise.all([closed, ...session.active]).then(cleanup);
+    else {
+      try { cleanup(); stopped = closed; }
+      catch (error) { stopped = closed.then(() => { throw error; }); }
+    }
+    session.stopping = stopped.finally(() => { session.stopping = null; });
+    return session.stopping;
   }
   async handle(req, res) {
     const respond = (status, value) => { if (!res.destroyed) { res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }); res.end(JSON.stringify(value)); } };

@@ -94,7 +94,7 @@ function Copy-Limited($InputStream, $OutputStream, [long]$Limit) {
 function Assert-Release($Release) {
     if ($Release -isnot [pscustomobject] -or $Release.schema -ne 1 -or $Release.id -cne 'tt-workbench' -or $Release.version -cnotmatch '^\d+\.\d+\.\d+$' -or $Release.files -isnot [pscustomobject]) { throw 'Invalid release manifest.' }
     $names = @($Release.files.PSObject.Properties.Name)
-    if (-not $names.Count -or $names.Count -gt 2000) { throw 'Invalid file count.' }
+    if (-not $names.Count -or $names.Count -gt 10000) { throw 'Invalid file count.' }
     $paths = @{}
     foreach ($name in $names) {
         Assert-RelativePath $name
